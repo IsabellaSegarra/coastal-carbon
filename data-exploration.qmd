@@ -1,0 +1,39 @@
+---
+title: "data-exploration"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+# Import 'CCN_sites', 'CCN_species', 'CCN_cores', 'CCN_depth_series'
+
+sites <- read_csv(here("CCN_data/CCN_sites.csv"))
+species <- read_csv(here("CCN_data/CCN_species.csv"))
+cores <- read_csv(here("CCN_data/CCN_cores.csv"))
+depth_series <- read_csv(here("CCN_data/CCN_depthseries.csv"))
+
+```
+
+```{r}
+# Explore 'sites' data
+
+glimpse(sites) # columns of interest: site_id (chr), vegetation_class, salinity_class
+unique(sites) # what is emergent grass?
+unique(sites$site_id) # some sites with odd IDs 
+unique(sites$vegetation_class)
+
+# Explore 'species' data
+glimpse(species) # columns of interest: site_id, species_code, habitat
+unique(species$site_id)
+unique(species$habitat) 
+
+# Explore 'cores' data
+glimpse(cores)
+```
+
