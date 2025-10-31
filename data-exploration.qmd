@@ -2,7 +2,10 @@
 title: "data-exploration"
 format: html
 ---
+## Data Exploration 
+This data comes from the Smithonian Environmental Research Center's Coastal Carbon Network project. More information on data files here: https://smithsonian.github.io/CCN-Community-Resources/soil_carbon_guidance.html 
 
+### Environment loading
 ```{r}
 library(tidyverse)
 library(here)
@@ -10,6 +13,7 @@ library(dplyr)
 library(ggplot2)
 ```
 
+### Data Import
 ```{r}
 # Import 'CCN_sites', 'CCN_species', 'CCN_cores', 'CCN_depth_series'
 
@@ -20,9 +24,9 @@ depth_series <- read_csv(here("CCN_data/CCN_depthseries.csv"))
 
 ```
 
+### Exploring the data set
 ```{r}
 # Explore 'sites' data
-
 glimpse(sites) # columns of interest: site_id (chr), vegetation_class, salinity_class
 unique(sites) # what is emergent grass?
 unique(sites$site_id) # some sites with odd IDs 
@@ -34,6 +38,81 @@ unique(species$site_id)
 unique(species$habitat) 
 
 # Explore 'cores' data
-glimpse(cores)
+glimpse(cores) # columns of interest: vegetation class, habitat, 
+unique(cores$vegetation_class)
+
+# Explore 'depth_series'
+glimpse(depth_series) # site_id is encoded, columns of interest: fraction_organic_matter, fraction_carbon, c14_age_se
+
+```
+
+### Data wrangling
+1. I want to first filter the data to only the columns I want from each dataset. Keeping the column I plan to join the data by. I may not use the 'cores' data as it contains repetions of the 'vegetation_class' and 'habitat' columns. 
+
+- sites: 'site_id', 'study_id', 'vegetation_class'
+- species: 'site_id', 'study_id', 'species_code', 'habitat'
+- depth_series: 'site_id', 'study_id', 'fraction_organic_matter', 'fraction_carbon', 'dry_bulk_density', 'c14_age', 
+- cores: 'elevation', 'max_depth', 'core_id'
+
+My predictr variables include habitat (categorical) and 'vegetation_class', and my response variable sinclude 'fraction_carbon', 'fraction_organic_matter', 'species_code'. 
+
+#### Filter individual datasets 
+```{r}
+# sites
+sites <- sites %>% 
+  select( 'site_id', 'study_id', 'vegetation_class')
+
+# species
+
+species <- species %>% 
+  select('site_id', 'study_id', 'species_code', 'habitat')
+
+# depth_series
+
+depth_series <- depth_series %>% 
+  select('site_id', 'study_id', 'fraction_organic_matter', 'fraction_carbon', 'dry_bulk_density', 'c14_age')
+
+# cores
+cores <- cores %>% 
+  select('site_id', 'study_id','elevation', 'max_depth', 'core_id' )
+
+```
+
+### Join data 
+Joined data is quite large, brainstorming ways to further filter the data. 
+```{r}
+#joined_df <- full_join(sites, species, depth_series, by = c('site_id', 'study_id')) -- Can't join three at once 
+
+joined_df <- sites %>%
+  full_join(species, by = c('site_id', 'study_id')) %>%
+  full_join(depth_series, by = c('site_id', 'study_id')) %>% 
+  full_join(cores, by =  c('site_id', 'study_id')) 
+
+glimpse(joined_df)
+```
+## Preliminary Data Visualizations
+```{r, fig.cap= "A breakdown of habitat types within the joined dataset. This is helpful to know that marsh is a well-documented habitat type."}
+
+joined_df %>% 
+  ggplot(aes(habitat)) +
+  geom_bar() +
+  labs(x = "Habitat", 
+       title = "Habitat Types") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+```
+
+```{r}
+joined_df %>% 
+  ggplot(aes(x = habitat, y = fraction_carbon)) +
+  geom_boxplot()
+```
+```{r}
+joined_df %>% 
+  ggplot(aes(x = dry_bulk_density, y = fraction_carbon)) +
+  geom_point() +
+  xlim(0, 1.5) + 
+  ylim(0, 1)
 ```
 
