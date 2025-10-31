@@ -54,27 +54,30 @@ glimpse(depth_series) # site_id is encoded, columns of interest: fraction_organi
 - depth_series: 'site_id', 'study_id', 'fraction_organic_matter', 'fraction_carbon', 'dry_bulk_density', 'c14_age', 
 - cores: 'elevation', 'max_depth', 'core_id'
 
-My predictr variables include habitat (categorical) and 'vegetation_class', and my response variable sinclude 'fraction_carbon', 'fraction_organic_matter', 'species_code'. 
+My predictor variables include 'habitat' (categorical), 'vegetation_class' (categorical), 'max depth' (continuous) and my response variables include 'fraction_carbon', 'fraction_organic_matter', 'species_code', 'dry_bulk_density', and 'c14_age'. 
 
 #### Filter individual datasets 
 ```{r}
 # sites
 sites <- sites %>% 
-  select( 'site_id', 'study_id', 'vegetation_class')
+  select( 'site_id', 'study_id', 'vegetation_class') %>% 
+  drop_na()
 
 # species
 
 species <- species %>% 
-  select('site_id', 'study_id', 'species_code', 'habitat')
+  select('site_id', 'study_id', 'species_code', 'habitat') %>% 
+  drop_na()
 
-# depth_series
-
+# depth_series (LOOK INTO: dropping na's removes all obs)
 depth_series <- depth_series %>% 
   select('site_id', 'study_id', 'fraction_organic_matter', 'fraction_carbon', 'dry_bulk_density', 'c14_age')
 
+
 # cores
 cores <- cores %>% 
-  select('site_id', 'study_id','elevation', 'max_depth', 'core_id' )
+  select('site_id', 'study_id','elevation', 'max_depth', 'core_id' ) %>% 
+  drop_na()
 
 ```
 
@@ -95,7 +98,7 @@ glimpse(joined_df)
 
 joined_df %>% 
   ggplot(aes(habitat)) +
-  geom_bar() +
+  geom_bar(color = "#345084FF") +
   labs(x = "Habitat", 
        title = "Habitat Types") +
   theme_minimal() +
@@ -114,5 +117,10 @@ joined_df %>%
   geom_point() +
   xlim(0, 1.5) + 
   ylim(0, 1)
+```
+```{r}
+joined_df %>% 
+  ggplot(aes(x = fraction_organic_matter, y = c14_age)) +
+  geom_point()
 ```
 
