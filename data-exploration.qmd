@@ -124,6 +124,7 @@ joined_df %>%
        title = "Relationship Between Soil Bulk Density and Fraction Carbon") +
   theme_bw()
 ```
+
 Relationship between soil bulk density and fraction carbon: This is a relationship I was interested in, however from the view of the scatter plot, the data needs to be aggregated or filtered further to piece out a relationship. 
 
 ## Plans for the data
