@@ -3,7 +3,7 @@ title: "data-exploration"
 format: html
 ---
 ## Data Exploration 
-This data comes from the Smithonian Environmental Research Center's Coastal Carbon Network project. More information on data files here: https://smithsonian.github.io/CCN-Community-Resources/soil_carbon_guidance.html 
+This data comes from the Smithsonian Environmental Research Center's Coastal Carbon Network project. More information on data files here: https://smithsonian.github.io/CCN-Community-Resources/soil_carbon_guidance.html 
 
 ### Environment loading
 ```{r}
@@ -98,7 +98,7 @@ glimpse(joined_df)
 
 joined_df %>% 
   ggplot(aes(habitat)) +
-  geom_bar(color = "#345084FF") +
+  geom_bar(fill = "#345084FF") +
   labs(x = "Habitat", 
        title = "Habitat Types") +
   theme_minimal() +
@@ -107,20 +107,25 @@ joined_df %>%
 ```
 
 ```{r}
-joined_df %>% 
-  ggplot(aes(x = habitat, y = fraction_carbon)) +
-  geom_boxplot()
+#joined_df %>% 
+  #ggplot(aes(x = habitat, y = fraction_carbon)) +
+  #geom_boxplot(fill = "habitat") 
+  #theme_bw()
 ```
+
 ```{r}
 joined_df %>% 
   ggplot(aes(x = dry_bulk_density, y = fraction_carbon)) +
-  geom_point() +
+  geom_point(color = "#345084FF") +
   xlim(0, 1.5) + 
-  ylim(0, 1)
+  ylim(0, 1) +
+  labs(x = "Soil dry bulk density (g/cm^3)", 
+       y = "Fraction carbon (dimensionless)", 
+       title = "Relationship Between Soil Bulk Density and Fraction Carbon") +
+  theme_bw()
 ```
-```{r}
-joined_df %>% 
-  ggplot(aes(x = fraction_organic_matter, y = c14_age)) +
-  geom_point()
-```
+Relationship between soil bulk density and fraction carbon: This is a relationship I was interested in, however from the view of the scatter plot, the data needs to be aggregated or filtered further to piece out a relationship. 
 
+## Plans for the data
+- turn habitat into a continuous variable
+- dig deeper into question you want to ask with the dataset 
