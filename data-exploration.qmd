@@ -35,7 +35,7 @@ unique(sites$vegetation_class)
 # Explore 'species' data
 glimpse(species) # columns of interest: site_id, species_code, habitat
 unique(species$site_id)
-unique(species$habitat) 
+unique(species$habitat) #maybe filter to just marsh, mangrove, seagrass 
 
 # Explore 'cores' data
 glimpse(cores) # columns of interest: vegetation class, habitat, 
@@ -107,11 +107,29 @@ joined_df %>%
 ```
 
 ```{r}
-#joined_df %>% 
-  #ggplot(aes(x = habitat, y = fraction_carbon)) +
-  #geom_boxplot(fill = "habitat") 
-  #theme_bw()
+joined_df %>% 
+  ggplot(aes(x = habitat, y = fraction_carbon)) +
+  geom_boxplot(fill = "habitat") +
+  theme_bw()
+
 ```
+
+```{r}
+# Question: 
+joined_df %>% 
+ggplot(aes(x = habitat, y = fraction_carbon, color = max_depth)) +
+  geom_jitter(width = 0.2) +
+  theme_bw()
+```
+```{r}
+# Question: Do deeper sites have more/less carbon? Does that relationship differs by habitat.
+joined_df %>% 
+ggplot(aes(x = max_depth, y = fraction_carbon, color = habitat)) +
+  geom_point() +
+  theme_bw()
+
+```
+
 
 ```{r}
 joined_df %>% 
@@ -130,3 +148,10 @@ Relationship between soil bulk density and fraction carbon: This is a relationsh
 ## Plans for the data
 - turn habitat into a continuous variable
 - dig deeper into question you want to ask with the dataset 
+- filter habitat to three types: mangrove, seagrass, marsh 
+
+## Further filtering
+```{r}
+
+```
+
