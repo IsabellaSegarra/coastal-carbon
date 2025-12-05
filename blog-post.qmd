@@ -1,12 +1,12 @@
 ---
 title: "Investigating Blue Carbon with Beta Regression"
-description: "short description of blog post"
-date: 2025-11-12
+description: "A brief statistical analysis of soil carbon."
+date: 2025-12-4
 categories: [MEDS, R, data-viz] #add hyphen for multiple words
-#image: image.png
+image: image.png
 citation: # true if no link 
   url: https://isabellasegarra.github.io/posts/my-first-blog-post
-draft: true
+draft: false
 draft-mode: linked
 bibliography: references.bib
 ---
@@ -31,10 +31,10 @@ following question:
 
 ## Data Background
 
-This data is from the Smithsonian Environmental Research Center Coastal Carbon Network (CCN). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They prove open-access to data sets for researchers and students like me. The dataset itself was originally over 15,000,000 observations. It includes data on soil measuremets such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation.For this dataset, I filtered to the three most researched habitats for blue carbon: mangrove, seagrass, and marsh.
+This data is from the Smithsonian Environmental Research Center Coastal Carbon Network (@ERC_CoastalCarbon). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They prove open-access to data sets for researchers and students like me. The dataset itself was originally over 15,000,000 observations. It includes data on soil measuremets such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation.
 
 ## Data wrangling
-In this section I 
+In this section I filtered the data for only variables of interest (`fraction_carbon`, `fraction_organic_matter`, `max_depth`, `habitat`) as well as ensured that `fraction_carbon` only contained fractional data between 0 and 1. For this dataset, I also filtered to the three most researched habitats for blue carbon: mangrove, seagrass, and marsh.
 ```{r}
 #| label: library set-up 
 #| output: false 
@@ -48,14 +48,8 @@ library(dplyr)
 library(ggplot2)
 library(kableExtra)
 # For statistical analysis
-#install.packages("betareg")
-library(betareg) 
-#install.packages("statmod")
-library(statmod) 
-
-install.packages("glmmTMB")  
+#install.packages("glmmTMB")  
 library(glmmTMB)
-
 library(paletteer)
 
 ```
@@ -76,6 +70,7 @@ depth_series <- read_csv(here("CCN_data/CCN_depthseries.csv"))
 ```{r}
 #| label: data wrangling
 #| output: false
+#| warning: false 
 
 
 # .....Further filter datasets.....
@@ -127,7 +122,8 @@ rm(list = c("cores", "depth_series", "sites", "species"))
 ## Data Exploration
 In order to understand what analysis needs to be done, some preliminary data exploration is useful. 
 ```{r}
-#| label: Data viz 2
+#| label: Data viz 1
+#| message: false 
 frac_car_plot <- blue_carbon %>% 
   ggplot(aes(fraction_carbon)) +
   geom_histogram(fill = "#345084FF") +
@@ -143,7 +139,7 @@ frac_car_plot
 As you can see from the graph above, fraction carbon is left skewed signifying that it does not follow a normal distribution. 
 
 ```{r}
-#| label: Data viz 3
+#| label: Data viz 2
 
 blue_carbon %>% 
   ggplot(aes(x = fraction_organic_matter, y = fraction_carbon, color = habitat)) +
@@ -158,7 +154,7 @@ blue_carbon %>%
 
 ## Statistical model: Beta Regression
 Since my response variable, `fraction_carbon` is a fraction between 0
-and 1, and is not normally distributed around the mean, I will use *Beta regression*. Beta regression models the mean of a proportion or fraction as a function of predictors. 
+and 1, and is not normally distributed around the mean, I will use *Beta regression* (@CribariNetoZeileis2010). Beta regression models the mean of a proportion or fraction as a function of predictors. 
 
 ### Hypothesis
 
@@ -205,7 +201,7 @@ size
 6. fit model to simulated data
 
 ```{r}
-#| label: Simulated data-parameters
+#| label: Simulated data parameters
 #| output: false
 #| warning: false
 #| message: false 
@@ -296,7 +292,7 @@ betareg_mdl_sum <- summary(betareg_mdl)
 # .....Extract coefficients..... 
 
 # beta_0 (intercept)
-beta_0 <- betareg_mdl_sum$coefficients$cond["(Intercept)", "Estimate"] # average the beta_0s
+beta_0 <- betareg_mdl_sum$coefficients$cond["(Intercept)", "Estimate"] 
 
 # beta_1 (slope of reference)
 beta_1 <- betareg_mdl_sum$coefficients$cond["fraction_organic_matter", "Estimate"]
@@ -310,7 +306,7 @@ dispersion <- sigma(betareg_mdl)
 ```
 
 ```{r}
-#| label: Simulated data-parameters
+#| label: kable table 2
 #| echo: false 
 
 # Turn into table 
