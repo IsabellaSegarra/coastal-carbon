@@ -1,0 +1,362 @@
+---
+title: "Investigating Blue Carbon with Beta Regression"
+description: "short description of blog post"
+date: 2025-11-12
+categories: [MEDS, R, data-viz] #add hyphen for multiple words
+#image: image.png
+citation: # true if no link 
+  url: https://isabellasegarra.github.io/posts/my-first-blog-post
+draft: true
+draft-mode: linked
+bibliography: references.bib
+---
+
+# Investigating Blue Carbon with Beta Regression
+
+## Research Question
+
+Coastal and marine ecosystems have the unique capacity to store carbon
+in the soil rather than vegetation like terrestrial ecosystems. This is
+often referred to as blue carbon, and is of growing interest as carbon
+dioxide continues to accumulate in the atmosphere. Understanding the
+biogeochemical processes that make up blue carbon is important for
+advancing blue carbon management as a solution to climate change (@USGS_BlueCarbon_2024).
+
+For this project, I will fit a **Beta Regression** model to answer the
+following question:
+
+-   How does soil organic matter affect carbon?
+-   Do some habitats (marsh, wetland, mangrove) have systematically more
+    carbon than others?
+
+## Data Background
+
+This data is from the Smithsonian Environmental Research Center Coastal Carbon Network (CCN). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They prove open-access to data sets for researchers and students like me. The dataset itself was originally over 15,000,000 observations. It includes data on soil measuremets such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation.For this dataset, I filtered to the three most researched habitats for blue carbon: mangrove, seagrass, and marsh.
+
+## Data wrangling
+In this section I 
+```{r}
+#| label: library set-up 
+#| output: false 
+#| echo: false
+
+set.seed(123)
+
+library(tidyverse)
+library(here)
+library(dplyr)
+library(ggplot2)
+library(kableExtra)
+# For statistical analysis
+#install.packages("betareg")
+library(betareg) 
+#install.packages("statmod")
+library(statmod) 
+
+install.packages("glmmTMB")  
+library(glmmTMB)
+
+library(paletteer)
+
+```
+
+```{r}
+#| label: data import 
+#| output: false 
+
+# Import 'CCN_sites', 'CCN_species', 'CCN_cores', 'CCN_depth_series'
+
+sites <- read_csv(here("CCN_data/CCN_sites.csv"))
+species <- read_csv(here("CCN_data/CCN_species.csv"))
+cores <- read_csv(here("CCN_data/CCN_cores.csv"))
+depth_series <- read_csv(here("CCN_data/CCN_depthseries.csv"))
+
+```
+
+```{r}
+#| label: data wrangling
+#| output: false
+
+
+# .....Further filter datasets.....
+
+# species data 
+species <- species %>% 
+  select('site_id', 'habitat') %>% 
+  filter(habitat %in% c("mangrove", "seagrass", "marsh")) %>% 
+  drop_na()
+
+# cores data 
+cores <- cores %>% 
+  select('site_id', 'max_depth') %>% 
+  drop_na()
+
+# depth series data 
+depth_series <- depth_series %>% 
+  select('site_id','fraction_organic_matter', 'fraction_carbon') %>% 
+  drop_na()
+
+#.....Join datasets.....
+
+blue_carbon <- species %>% 
+  full_join(depth_series, by = c('site_id')) %>% 
+  full_join(cores, by =  c('site_id')) 
+
+
+#.....Remove Negative values from Fraction Carbon.....
+
+# Ensure `fraction_carbon` ranges between 0 and 1 for analysis.
+range(blue_carbon$fraction_carbon)
+
+sum(blue_carbon$fraction_carbon < 0, na.rm = TRUE) # 467 negative values. 
+
+# Replace negative numbers wiht NAs
+blue_carbon$fraction_carbon[blue_carbon$fraction_carbon < 0] <- NA
+
+# Check range to ensure negative values were 
+range(blue_carbon$fraction_carbon)
+
+# Remove Nas from entire dataset
+blue_carbon <- na.omit(blue_carbon)
+
+# clear up environment
+rm(list = c("cores", "depth_series", "sites", "species"))
+
+```
+
+## Data Exploration
+In order to understand what analysis needs to be done, some preliminary data exploration is useful. 
+```{r}
+#| label: Data viz 2
+frac_car_plot <- blue_carbon %>% 
+  ggplot(aes(fraction_carbon)) +
+  geom_histogram(fill = "#345084FF") +
+  labs(x = "Fraction carbon", 
+       y = "Frequency", 
+       title = "Distribution of Fraction Carbon") +
+  theme_classic()
+
+frac_car_plot
+
+```
+
+As you can see from the graph above, fraction carbon is left skewed signifying that it does not follow a normal distribution. 
+
+```{r}
+#| label: Data viz 3
+
+blue_carbon %>% 
+  ggplot(aes(x = fraction_organic_matter, y = fraction_carbon, color = habitat)) +
+  geom_point(alpha = 0.5) +
+  scale_color_paletteer_d("nationalparkcolors::Acadia") +
+  theme_classic() +
+  labs(x = "Soil Organic Matter (dimensionless)", 
+       y = "Fraction carbon (dimensionless)", 
+       title = "Relationship Between Soil Organic Matter and Fraction Carbon")
+
+```
+
+## Statistical model: Beta Regression
+Since my response variable, `fraction_carbon` is a fraction between 0
+and 1, and is not normally distributed around the mean, I will use *Beta regression*. Beta regression models the mean of a proportion or fraction as a function of predictors. 
+
+### Hypothesis
+
+Question: How does soil organic matter affect carbon?
+
+-   H₀ (null hypothesis): Soil organic matter has no effect on fraction
+    carbon in the soil.
+
+-   H₁ (alternative hypothesis): Higher soil organic matter is
+    associated with higher fraction carbon.
+
+Why include `max_depth`? Deeper soils might have more organic matter
+accumulation and fraction carbon can change with depth (e.g., shallower
+layers of soil may have higher carbon than deeper layers). This is measured in cm. 
+
+I represented these casual relationships with a DAG (directed acyclic graph): 
+
+[!DAG](images/DAG-final-project.png)
+
+### Statistical Notation of model
+$$
+\begin{align}
+\text{carbon} &\sim \text{Beta}(\mu, \phi) \\
+logit(\mu) &= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text{maxdepth}_i
+\end{align}
+$$ 
+
+- *carbon* is the fraction of carbon, constrained between 0 and 1.
+- $\mu_i$ is the expected value of carbon.
+- $\phi$ is the precision parameter of the beta distribution. This controls the variance.
+- coefficients: $\beta_0$ is the intercept; $\beta_1$ and $\beta_2$ are coefficients for the predictors fraction organic matter and max depth 
+
+## Fit model to simulated data
+
+In order to determine if a Beta regression model is fit for this data, I
+will *simulate* data and perform an analysis on the simulated data. This includes the following steps:
+
+1. define sample
+size
+2. choose parameters for $\beta$ 
+3. define range for predictors: This step is not necessary but helpful in simulating real *fake* data.
+4. define linear equation and logit function
+5. generate response
+6. fit model to simulated data
+
+```{r}
+#| label: Simulated data-parameters
+#| output: false
+#| warning: false
+#| message: false 
+
+# set seed for reproducibility
+set.seed(123)
+
+# 1. Define sample size
+n <- 1000 # large enough
+
+# 2. Choose parameters 
+beta_0 <- 0.5 # intercept (fraction carbon)
+beta_1 <- 0.8  # effect of fraction organic matter
+beta_2 <- -0.01 # effect of max_depth
+phi <- 0.8 # precision parameter 
+
+# 3. define predictor ranges (x's)
+# (n=sample size, min, max)
+fraction_organic_matter <- runif(n, 0.05, 0.2)
+max_depth <- runif(n, 0, 30)
+
+# 3. Linear predictor and Logit response
+  # set logit_mu 
+logit_mu <- beta_0 + beta_1 * fraction_organic_matter + beta_2 * max_depth 
+  # set transformation 
+
+  # Inverse logit 
+mu <- 1 / (1 + exp(-logit_mu)) # mu = mean of beta distribution
+
+# 4. Generate response with rbeta(). Look up documentation
+shape1 <- mu * phi
+shape2 <- (1 - mu) * phi
+fraction_carbon <- rbeta(n, shape1, shape2)
+
+# 5. Create dataframe for simulated data
+sim_blue_carbon <- data.frame(fraction_carbon, fraction_organic_matter, max_depth)
+
+# 6. Fit model 
+betareg_sim_mdl <- glmmTMB(fraction_carbon ~ fraction_organic_matter + max_depth, data = sim_blue_carbon, family = beta_family())
+
+  # Summarize model
+summary(betareg_sim_mdl)
+
+```
+
+```{r}
+#| label: kable table 
+#| echo: false
+
+# Get model summary 
+betareg_sim_mdl_sum <- summary(betareg_sim_mdl)
+
+# Extract coefficients from model. glmmTMB stores coefficients differently.
+
+beta_0_sim <- betareg_sim_mdl_sum$coefficients$cond["(Intercept)", "Estimate"]
+beta_1_sim <- betareg_sim_mdl_sum$coefficients$cond["fraction_organic_matter", "Estimate"]
+beta_2_sim <- betareg_sim_mdl_sum$coefficients$cond["max_depth", "Estimate"]
+
+  
+# Turn into table 
+coefficients <- c("Intercept", "Fraction Organic Matter", "Max Depth(cm)")
+estimate_sim <- c(beta_0_sim, beta_1_sim, beta_2_sim)
+actual <- c(beta_0, beta_1, beta_2)
+
+# combine into data frame 
+sim_df_assess <- data.frame(coefficients, estimate_sim, actual) 
+
+sim_df_assess%>% kable(col.names = c("Coefficient", "Simulation Estimate", "Actual Parameter"), caption = "Table 1. Model Assessment") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+
+```
+The model seems to recover parameters well. This is good evidence that beta regression is the model for this data. 
+
+## Fit model to real-life data
+In this section I will fit the model to real life data from the Smithsonian's Coastal Carbon Network. I will use the `glmmTMB` package and specify the family as `beta_family` for a beta regression. 
+```{r}
+#| label: Fit model 
+# .....Fit beta regression model..... 
+
+betareg_mdl <- glmmTMB(fraction_carbon ~ fraction_organic_matter + max_depth, 
+                      data = blue_carbon[1:10000, ], family = beta_family()) # subset data for faster processing 
+
+
+# .....Summarize model.....
+betareg_mdl_sum <- summary(betareg_mdl)
+
+# .....Extract coefficients..... 
+
+# beta_0 (intercept)
+beta_0 <- betareg_mdl_sum$coefficients$cond["(Intercept)", "Estimate"] # average the beta_0s
+
+# beta_1 (slope of reference)
+beta_1 <- betareg_mdl_sum$coefficients$cond["fraction_organic_matter", "Estimate"]
+
+# beta_2 (change in intercepts)
+beta_2 <- betareg_mdl_sum$coefficients$cond["max_depth", "Estimate"]
+
+# Dispersion parameter
+dispersion <- sigma(betareg_mdl)
+
+```
+
+```{r}
+#| label: Simulated data-parameters
+#| echo: false 
+
+# Turn into table 
+coefficients <- c("Intercept", "Fraction Organic Matter", "Max Depth(cm)")
+estimate <- c(beta_0, beta_1, beta_2)
+
+# turn into dataframe
+betareg_mdl_tbl <- data.frame(coefficients, estimate)
+
+# put in table 
+betareg_mdl_tbl %>%
+  kable(col.names = c("Coefficient", "Estimate"), caption = "Table 2. Beta Regression Output") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+```
+
+## Generate predictions
+In this section I will generate predictions to visualize what the relationship will be for new data. 
+```{r}
+#| label: Generate predictions
+
+# .....Create prediction grid.....
+pred_grid <- expand_grid(fraction_organic_matter = seq(from = 0, to = 1, by = 0.001)) %>% 
+  mutate(max_depth = mean(blue_carbon$max_depth, na.rm = TRUE))
+
+# ......Generate predictions.....
+betareg_grid <- pred_grid %>% 
+  mutate(predictions = predict(object = betareg_mdl, # glm
+                     newdata = pred_grid, # expand grid data
+                     type = "response")) # response link 
+
+# .....Plot predictions.....
+predict_plot <- ggplot(betareg_grid, aes(fraction_organic_matter, y = predictions)) +
+  geom_line(col = "#345084FF" ) +
+  labs(x= "Fraction Organic Matter (dimensionless)", 
+       y = "Fraction Carbon (dimensionless)", 
+       title = "Predicted Fraction Carbon") +
+  theme_bw()
+
+# View plot
+predict_plot
+
+```
+## Conclusion and next steps
+
+## Refrences
+
+## Github
+[Link to Github repository](https://github.com/IsabellaSegarra/coastal-carbon)

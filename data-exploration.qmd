@@ -92,6 +92,7 @@ joined_df <- sites %>%
   full_join(cores, by =  c('site_id', 'study_id')) 
 
 glimpse(joined_df)
+
 ```
 ## Preliminary Data Visualizations
 ```{r, fig.cap= "A breakdown of habitat types within the joined dataset. This is helpful to know that marsh is a well-documented habitat type."}
@@ -146,12 +147,43 @@ joined_df %>%
 Relationship between soil bulk density and fraction carbon: This is a relationship I was interested in, however from the view of the scatter plot, the data needs to be aggregated or filtered further to piece out a relationship. 
 
 ## Plans for the data
-- turn habitat into a continuous variable
-- dig deeper into question you want to ask with the dataset 
-- filter habitat to three types: mangrove, seagrass, marsh 
+- dig deeper into question you want to ask with the data set 
+- filter habitat to three types: mangrove, sea grass, marsh 
 
 ## Further filtering
 ```{r}
+# Filter to habitat: mangrove, sea grass, marsh 
+# keep only these columns: soil organic matter, max depth, fraction carbon, dry bulk density 
 
+df <- joined_df %>% 
+  filter(habitat %in% c("mangrove", "seagrass", "marsh")) %>% 
+  select(fraction_organic_matter, fraction_carbon, max_depth, dry_bulk_density, habitat)
+
+glimpse(df)
+```
+## Exploratory graph 
+```{r}
+df %>% 
+  ggplot(aes(x = fraction_organic_matter, y = fraction_carbon)) +
+  geom_point() +
+  theme_bw()
+```
+## Fit model to data
+In this section I will fit a multi-linear regression model to ask the following question:
+ In coastal wetland ecosystems, how does organic matter and max depth influence carbon? 
+
+```{r}
+# 1. Fit model
+lm_mdl <- lm(fraction_carbon ~ fraction_organic_matter + max_depth, data = df)
+
+# 2. Summary 
+summary(lm_mdl)
+
+```
+
+```{r}
+lm_mdl_2 <- lm(fraction_carbon ~ fraction_organic_matter + max_depth + dry_bulk_density, data = df)
+
+summary(lm_mdl_2)
 ```
 
