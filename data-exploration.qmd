@@ -187,3 +187,22 @@ lm_mdl_2 <- lm(fraction_carbon ~ fraction_organic_matter + max_depth + dry_bulk_
 summary(lm_mdl_2)
 ```
 
+```{r}
+
+#install.packages("nnet")  
+library(nnet)
+
+# Set habitat as factors
+blue_carbon$habitat <- as.factor(blue_carbon$habitat)
+
+multinom_mdl <- multinom(habitat ~ fraction_carbon + fraction_organic_matter + max_depth,
+                      data = blue_carbon) 
+
+# Predict with model
+multinom_df <- data.frame(fraction_carbon= -0.05,
+                       fraction_organic_matter = 0.3, 
+                       max_depth = 40)
+
+predict(multinom_mdl, newdata = multinom_df, type = "class")
+```
+
