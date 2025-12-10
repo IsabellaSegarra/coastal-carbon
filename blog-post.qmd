@@ -11,12 +11,10 @@ draft-mode: linked
 bibliography: references.bib
 ---
 
-# Investigating Blue Carbon with Beta Regression
-
 ## Research Question
 Large amounts of carbon is naturally stored in the world's oceans and in the soil of coastal wetlands. This is referred to as blue carbon. 
  
-Blue carbon is unique due to its ability to store  or sequester carbon at a much faster rate than terrestrial ecosystems like forests. This carbon is stored in the soils of these ecosystems -- marsh, sea grass, mangrove, salt marshes. These habitats are of growing interest as greenhouse gases continue to accumulate in the atmosphere. Understanding the biogeochemical processes that make up carbon sequestration is important for advancing blue carbon management as a solution to climate change.  (@USGS_BlueCarbon_2024).
+Blue carbon is unique due to its ability to store or sequester carbon at a much faster rate than terrestrial ecosystems like forests. This carbon is stored in the soils of these ecosystems -- marsh, sea grass, mangrove, salt marshes. These habitats are of growing interest as greenhouse gases continue to accumulate in the atmosphere. Understanding the biogeochemical processes that make up carbon sequestration is important for advancing blue carbon management as a solution to climate change.  (@USGS_BlueCarbon_2024). ADD MORE ABOUT HOW SOM INFLUENCES CARBON DEPOSITS 
 
 For this project, I will fit a **Beta Regression** model to answer the
 following question:
@@ -124,41 +122,43 @@ table(blue_carbon$habitat)
 ```
 
 ## Data Exploration
-In order to understand what analysis needs to be done, some preliminary data exploration is useful. 
-```{r}
+In order to understand what analysis needs to be done, some preliminary data exploration is useful. I am particularly interested in the spread of data points for `fraction_carbon`. 
+```{r, fig.cap= "Fig 1. Distribution of Fraction Carbon"}
 #| label: Data viz 1
 #| message: false 
 #| code-fold: true
 
 frac_car_plot <- blue_carbon %>% 
   ggplot(aes(fraction_carbon)) +
-  geom_histogram(fill = "#345084FF") +
-  labs(x = "Fraction carbon", 
+  geom_histogram(fill = "#9fd0d6") +
+  labs(x = "Fraction carbon (dimensionless)", 
        y = "Frequency", 
        title = "Distribution of Fraction Carbon") +
-  theme_classic()
+  theme_classic() +
+  theme(plot.title = element_text(hjust = 0.5)) # center title 
 
 frac_car_plot
 
 ```
+As you can in `fig 1.`, fraction carbon is left skewed signifying that it does not follow a normal distribution. This is due to fraction carbon being bounded between 0 and 1 because it is a fraction. 
 
-As you can see from the graph above, fraction carbon is left skewed signifying that it does not follow a normal distribution. 
-
-```{r}
+```{r, fig.cap= "Fig 2. Relationship between soil organic matter and fraction carbon"}
 #| label: Data viz 2
 #| code-fold: true
 
 blue_carbon %>% 
   ggplot(aes(x = fraction_organic_matter, y = fraction_carbon, color = habitat)) +
-  geom_point(alpha = 0.5) +
-  scale_color_paletteer_d("nationalparkcolors::Acadia") +
+  geom_point(alpha = 0.2) +
+  geom_smooth(aes(group = habitat), method = "lm", se = FALSE) +
+  scale_color_paletteer_d("MoMAColors::Andri") +
   theme_classic() +
   labs(x = "Soil Organic Matter (dimensionless)", 
        y = "Fraction carbon (dimensionless)", 
-       title = "Relationship Between Soil Organic Matter and Fraction Carbon")
+       title = "Relationship between soil organic matter and fraction carbon")
 
 ```
-INTERPRET MORE HERE
+As you can in `fig 2`, soil organic matter has follows a linear pattern with fraction carbon. 
+There is some notable variation between habitat, especially between seagrass and marsh and mangrove habitats, however the shape of the data is similar for the majority of habitats. 
 
 ## Statistical model: Beta Regression
 Since my response variable, `fraction_carbon` is a fraction between 0
@@ -167,13 +167,15 @@ and 1, and is not normally distributed around the mean, I will use *Beta regress
 - `fraction_organic_matter`: Mass of organic matter relative to sample dry mass (dimensionless)
 - `max_ depth`: Maximum depth of a sampling increment (centimeters)
 
-Why include `max_depth`? Deeper soils might have more organic matter
+Why include `max_depth` in the model? Deeper soils might have more organic matter
 accumulation and fraction carbon can change with depth (e.g., shallower
 layers of soil may have higher carbon than deeper layers). 
 
+Why exclude `habitat` from the model? I am interested in the overall relationship between soil organic matter and fraction carbon, regardless of habitat. If I were to represent the causal relationship of habitat on fraction carbon I would represented it habitat → fraction_organic_matter → fraction_carbon. Because habitat influences organic matter, it inhibits the total effect of organic matter on fraction carbon. 
+
 I represented these causal relationships with a DAG (directed acyclic graph): 
 
-[!DAG](images/DAG-final-project.png)
+[!DAG](images/DAG.png)
 
 ### Hypothesis
 
@@ -202,7 +204,7 @@ $$
 ## Fit model to simulated data
 
 In order to determine if a Beta regression model is fit for this data, I
-will *simulate* data and perform an analysis on the simulated data. EXPLAIN MORE ABOUT DATA SIMULATION. This includes the following steps:
+will *simulate* data and perform an analysis on the simulated data. This step is also helpful to see how well you understand the model. This includes the following steps:
 
 1. define sample size
 2. choose parameters for $\beta$ 
@@ -230,7 +232,7 @@ beta_2 <- -0.01 # effect of max_depth
 phi <- 0.9 # precision parameter 
 
 # 3. define predictor ranges (x's)
-# (n=sample size, min, max)
+# runif(n=sample size, min, max)
 fraction_organic_matter <- runif(n, 0.05, 0.9)
 max_depth <- runif(n, 0, 30)
 
@@ -245,7 +247,8 @@ mu <- 1 / (1 + exp(-logit_mu)) # mu = mean of beta distribution
 shape1 <- mu * phi
 shape2 <- (1 - mu) * phi
 fraction_carbon <- rbeta(n, shape1, shape2)
-# R computer error: ensure that 0 < fraction_carbon < 1
+
+# R computer error: ensure that fraction carbon stays between 0 and 1
 fraction_carbon[fraction_carbon == 1] <- .999 
 fraction_carbon[fraction_carbon == 0] <- .0001
 
@@ -291,16 +294,20 @@ sim_df_assess%>% kable(col.names = c("Coefficient", "Simulation Estimate", "Actu
 The model seems to recover parameters well. This is good evidence that beta regression is the model for this data. 
 
 ## Fit model to real-life data
-In this section I will fit the model to real life data from the Smithsonian's Coastal Carbon Network. I will use the `glmmTMB` package and specify the family as `beta_family` for a beta regression. 
+Now, I will fit a beta regression model to real life data from the Smithsonian's Coastal Carbon Network. I will use the `glmmTMB` package and specify the family as `beta_family` for a beta regression. 
 ```{r}
 #| label: Fit model 
+
 # .....Fit beta regression model..... 
 
 betareg_mdl <- glmmTMB(fraction_carbon ~ fraction_organic_matter + max_depth, 
-                      data = blue_carbon, family = beta_family()) # subset data for faster processing 
+                      data = blue_carbon, family = beta_family()) 
 
-#betareg_mdl_2 <- glmmTMB(fraction_carbon ~ fraction_organic_matter + max_depth, 
-                      #data = blue_carbon[1:10000, ], family = beta_family()) 
+```
+
+```{r}
+#| label: Summarize model
+#| code-fold: true
 
 # .....Summarize model.....
 betareg_mdl_sum <- summary(betareg_mdl)
@@ -316,10 +323,19 @@ beta_1 <- betareg_mdl_sum$coefficients$cond["fraction_organic_matter", "Estimate
 # beta_2 (change in intercepts)
 beta_2 <- betareg_mdl_sum$coefficients$cond["max_depth", "Estimate"]
 
-# Dispersion parameter
-dispersion <- sigma(betareg_mdl)
+# Std. Errors 
+error_beta_0 <- betareg_mdl_sum$coefficients$cond["(Intercept)", "Std. Error"] 
+error_beta_1 <- betareg_mdl_sum$coefficients$cond["fraction_organic_matter", "Std. Error"] 
+error_beta_2 <- betareg_mdl_sum$coefficients$cond["max_depth", "Std. Error"] 
+
+# P-values 
+p_beta_0 <- betareg_mdl_sum$coefficients$cond["(Intercept)", "Pr(>|z|)"] 
+p_beta_1 <- betareg_mdl_sum$coefficients$cond["fraction_organic_matter", "Pr(>|z|)"] 
+p_beta_2 <- betareg_mdl_sum$coefficients$cond["max_depth", "Pr(>|z|)"] 
+
 
 ```
+
 
 ```{r}
 #| label: kable table 2
@@ -328,16 +344,24 @@ dispersion <- sigma(betareg_mdl)
 # Turn into table 
 coefficients <- c("Intercept", "Fraction Organic Matter", "Max Depth")
 estimate <- c(beta_0, beta_1, beta_2)
+std_errors <- c(error_beta_0, error_beta_1, error_beta_2)
+p_values <- c(p_beta_0, p_beta_1, p_beta_2)
+
+# Ensure p-values show the zeros 
+p_text <- ifelse(p_values < 2e-16, "< 2e-16", format(p_values, scientific = TRUE))
 
 # turn into dataframe
-betareg_mdl_tbl <- data.frame(coefficients, estimate)
+betareg_mdl_tbl <- data.frame(coefficients, estimate, std_errors, p_values = p_text)
 
 # put in table 
 betareg_mdl_tbl %>%
-  kable(col.names = c("Coefficient", "Estimate"), caption = "Table 2. Beta Regression Output") %>%
+  kable(col.names = c("Coefficient", "Estimate", "Standard Error", "P-Value"), caption = "Table 2. Beta Regression Output") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
+## Model interpretation
+- Effect of fraction organic matter on fraction carbon → 
+- Effect of max depth on fraction carbon → 
 
 ## Generate predictions
 In this section I will generate predictions to visualize what the relationship will be for new data. This includes the following steps:
@@ -345,7 +369,7 @@ In this section I will generate predictions to visualize what the relationship w
 1. Create prediction grid/data frame where `fraction_organic_matter` is allowed to vary based on a specified sequence while `max_depth` is held constant (with its mean). 
 2. Use my Beta regression model fitted to real-life data (`betareg_mdl`) to generate predictions for `fraction_carbon`. This produces predicted beta-regression means. Ensure this dataframe is in the response space so that it returns values between 0 and 1. 
 
-*Why am I holding `max_depth` constant?* I want to show how `fraction_carbon` changes with one predictor (`fraction_organic_matter`). This isolates the effect of one predictor. 
+Why am I holding `max_depth` constant? I want to show how `fraction_carbon` changes with one predictor (`fraction_organic_matter`). This isolates the effect of organic matter on carbon. 
 
 ```{r}
 #| label: Generate predictions
@@ -363,7 +387,7 @@ betareg_grid <- pred_grid %>%
 ```
 
 ### Calculate Confidence Intervals
-In this section I will calculate the degree of certainty my predictions have using *confidence intervals*. A confidence interval (CI) is a range we are confident contains the population parameter.
+In this section I will calculate the degree of certainty my predictions have using *confidence intervals*. A confidence interval is a range we are confident contains the population parameter.
 ```{r}
 #| label: Calculate confidence intervals
 
@@ -371,9 +395,9 @@ In this section I will calculate the degree of certainty my predictions have usi
 
 boot <- map_dfr(1:1000, \(i) {
   # boot strap sample
-  boot_sample <- slice_sample(blue_carbon, n = 1000, replace = TRUE)
+  boot_sample <- slice_sample(blue_carbon, n = 1000, replace = TRUE) # replace the bootstrap 
   # fit model 
-  boot_mdl <- glmmTMB(fraction_carbon ~ fraction_organic_matter + max_depth, 
+  boot_mdl <- glmmTMB(fraction_carbon ~ fraction_organic_matter + max_depth, #
                       family = beta_family(link = "logit"), 
                       data = boot_sample)
   # add predictions 
@@ -382,7 +406,7 @@ boot <- map_dfr(1:1000, \(i) {
            boot = i)
 })
 
-
+# build confidence interval 
 boot_ci <- boot %>% 
   group_by(fraction_organic_matter, max_depth) %>% 
   summarise(
@@ -395,24 +419,34 @@ boot_ci <- boot %>%
 
 ```{r}
 #| code-fold: true
-# .....Plot predictions..... NEED CONFIDENCE INTERVALS 
-predict_plot <- ggplot(betareg_grid, aes(x = fraction_organic_matter, y = predictions)) +
-  geom_line(col = "#345084FF") +
+# .....Plot predictions.....
+
+predict_plot <- ggplot() +
+  # Predicted line
+  geom_line(data = betareg_grid, 
+            aes(x = fraction_organic_matter, y = predictions), 
+            color = "#345084FF", size = 1) +
   # Original data points
-  geom_point(data = blue_carbon,
-             aes(x = fraction_organic_matter, 
-                 y = fraction_carbon),
-             alpha = 0.5, size = 2) +
-  # confidence interval 
-  geom_ribbon(data = boot_ci, aes(fraction_organic_matter, ymin = ci_lwr, ymax = ci_upr))
-  labs(x= "Fraction Organic Matter (dimensionless)", 
-       y = "Fraction Carbon (dimensionless)", 
-       title = "Predicted Fraction Carbon") +
-  theme_bw()
+  geom_point(data = blue_carbon, 
+             aes(x = fraction_organic_matter, y = fraction_carbon),
+             alpha = 0.5, size = 2, color = "#FF6F61") +
+  # Confidence interval
+  geom_ribbon(data = boot_ci, 
+              aes(x = fraction_organic_matter, ymin = ci_lwr, ymax = ci_upr), 
+              fill = "#345084FF", alpha = 0.2) +
+  labs(
+    x = "Fraction Organic Matter (dimensionless)", 
+    y = "Fraction Carbon (dimensionless)", 
+    title = "Predicted Fraction Carbon") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) # center title 
 
 predict_plot
 
+
 ```
+After plotting this data I noticed the level of *noise* or outliers deviating from the linear direction in the data. This noise is due to 
+
 ## Conclusion and next steps
 
 ## Refrences

@@ -6,8 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-11-12">
-<meta name="description" content="short description of blog post">
+<meta name="dcterms.date" content="2025-12-04">
+<meta name="description" content="A brief statistical analysis of soil carbon.">
 
 <title>Investigating Blue Carbon with Beta Regression</title>
 <style>
@@ -94,7 +94,6 @@ div.csl-indent {
 <link href="blog-post_files/libs/bootstrap/bootstrap-d6a003b94517c951b2d65075d42fb01b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="blog-post_files/libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="blog-post_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
-<meta name="quarto:status" content="draft">
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -128,7 +127,7 @@ window.Quarto = {
 
 </head>
 
-<body class="fullcontent quarto-light"><div id="quarto-draft-alert" class="alert alert-warning"><i class="bi bi-pencil-square"></i>Draft</div>
+<body class="fullcontent quarto-light">
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 
@@ -146,7 +145,7 @@ window.Quarto = {
 
 <div>
   <div class="description">
-    short description of blog post
+    A brief statistical analysis of soil carbon.
   </div>
 </div>
 
@@ -157,7 +156,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 12, 2025</p>
+      <p class="date">December 4, 2025</p>
     </div>
   </div>
   
@@ -173,20 +172,20 @@ window.Quarto = {
 <h1>Investigating Blue Carbon with Beta Regression</h1>
 <section id="research-question" class="level2">
 <h2 class="anchored" data-anchor-id="research-question">Research Question</h2>
-<p>Coastal and marine ecosystems have the unique capacity to store carbon in the soil rather than vegetation like terrestrial ecosystems. This is often referred to as blue carbon, and is of growing interest as carbon dioxide continues to accumulate in the atmosphere. Understanding the biogeochemical processes that make up blue carbon is important for advancing blue carbon management as a solution to climate change (<span class="citation" data-cites="USGS_BlueCarbon_2024">Survey (<a href="#ref-USGS_BlueCarbon_2024" role="doc-biblioref">2024</a>)</span>).</p>
+<p>Large amounts of carbon is naturally stored in the world’s oceans and in the soil of coastal wetlands. This is referred to as blue carbon.</p>
+<p>Blue carbon is unique due to its ability to store or sequester carbon at a much faster rate than terrestrial ecosystems like forests. This carbon is stored in the soils of these ecosystems – marsh, sea grass, mangrove, salt marshes. These habitats are of growing interest as greenhouse gases continue to accumulate in the atmosphere. Understanding the biogeochemical processes that make up carbon sequestration is important for advancing blue carbon management as a solution to climate change. (<span class="citation" data-cites="USGS_BlueCarbon_2024">Survey (<a href="#ref-USGS_BlueCarbon_2024" role="doc-biblioref">2024</a>)</span>).</p>
 <p>For this project, I will fit a <strong>Beta Regression</strong> model to answer the following question:</p>
 <ul>
-<li>How does soil organic matter affect carbon?</li>
-<li>Do some habitats (marsh, wetland, mangrove) have systematically more carbon than others?</li>
+<li><strong>How does soil organic matter affect carbon?</strong></li>
 </ul>
 </section>
 <section id="data-background" class="level2">
 <h2 class="anchored" data-anchor-id="data-background">Data Background</h2>
-<p>This data is from the Smithsonian Environmental Research Center Coastal Carbon Network (CCN). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They prove open-access to data sets for researchers and students like me. The dataset itself was originally over 15,000,000 observations. It includes data on soil measuremets such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation.For this dataset, I filtered to the three most researched habitats for blue carbon: mangrove, seagrass, and marsh.</p>
+<p>This data is from the Smithsonian Environmental Research Center Coastal Carbon Network (<span class="citation" data-cites="ERC_CoastalCarbon">(<a href="#ref-ERC_CoastalCarbon" role="doc-biblioref"><strong>ERC_CoastalCarbon?</strong></a>)</span>). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They prove open-access to data sets for researchers and students like me. The data set itself is originally over 15,000,000 observations. It includes data on soil measurements such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation.</p>
 </section>
 <section id="data-wrangling" class="level2">
 <h2 class="anchored" data-anchor-id="data-wrangling">Data wrangling</h2>
-<p>In this section I</p>
+<p>In this section I filtered the data for only variables of interest (<code>fraction_carbon</code>, <code>fraction_organic_matter</code>, <code>max_depth</code>, <code>habitat</code>) as well as ensured that <code>fraction_carbon</code> only contained fractional data between 0 and 1. For this dataset, I also filtered to the three most researched habitats for blue carbon: mangrove, seagrass, and marsh.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Import 'CCN_sites', 'CCN_species', 'CCN_cores', 'CCN_depth_series'</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -196,55 +195,69 @@ window.Quarto = {
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>depth_series <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">"CCN_data/CCN_depthseries.csv"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Further filter datasets.....</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># species data </span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> species <span class="sc">%&gt;%</span> </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">'site_id'</span>, <span class="st">'habitat'</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(habitat <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"mangrove"</span>, <span class="st">"seagrass"</span>, <span class="st">"marsh"</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># cores data </span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>cores <span class="ot">&lt;-</span> cores <span class="sc">%&gt;%</span> </span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">'site_id'</span>, <span class="st">'max_depth'</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># depth series data </span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>depth_series <span class="ot">&lt;-</span> depth_series <span class="sc">%&gt;%</span> </span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">'site_id'</span>,<span class="st">'fraction_organic_matter'</span>, <span class="st">'fraction_carbon'</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#.....Join datasets.....</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Further filter datasets.....</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># species data </span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>species <span class="ot">&lt;-</span> species <span class="sc">%&gt;%</span> </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">'site_id'</span>, <span class="st">'habitat'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(habitat <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"mangrove"</span>, <span class="st">"seagrass"</span>, <span class="st">"marsh"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># cores data </span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>cores <span class="ot">&lt;-</span> cores <span class="sc">%&gt;%</span> </span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">'site_id'</span>, <span class="st">'max_depth'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co"># depth series data </span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>depth_series <span class="ot">&lt;-</span> depth_series <span class="sc">%&gt;%</span> </span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">'site_id'</span>,<span class="st">'fraction_organic_matter'</span>, <span class="st">'fraction_carbon'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span>
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>blue_carbon <span class="ot">&lt;-</span> species <span class="sc">%&gt;%</span> </span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(depth_series, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'site_id'</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(cores, <span class="at">by =</span>  <span class="fu">c</span>(<span class="st">'site_id'</span>)) </span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co">#.....Remove Negative values from Fraction Carbon.....</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure `fraction_carbon` ranges between 0 and 1 for analysis.</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(blue_carbon<span class="sc">$</span>fraction_carbon)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">#.....Join datasets.....</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>blue_carbon <span class="ot">&lt;-</span> species <span class="sc">%&gt;%</span> </span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(depth_series, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">'site_id'</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(cores, <span class="at">by =</span>  <span class="fu">c</span>(<span class="st">'site_id'</span>)) </span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">#.....Random sample....</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>blue_carbon <span class="ot">&lt;-</span> <span class="fu">sample_n</span>(blue_carbon, <span class="at">size =</span> <span class="dv">100000</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(blue_carbon<span class="sc">$</span>fraction_carbon <span class="sc">&lt;</span> <span class="dv">0</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="co"># 467 negative values. </span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">#.....Remove Negative values from Fraction Carbon.....</span></span>
 <span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace negative numbers wiht NAs</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>blue_carbon<span class="sc">$</span>fraction_carbon[blue_carbon<span class="sc">$</span>fraction_carbon <span class="sc">&lt;</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure `fraction_carbon` ranges between 0 and 1 for analysis.</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(blue_carbon<span class="sc">$</span>fraction_carbon)</span>
 <span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Check range to ensure negative values were </span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(blue_carbon<span class="sc">$</span>fraction_carbon)</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove Nas from entire dataset</span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>blue_carbon <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(blue_carbon)</span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co"># clear up environment</span></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">c</span>(<span class="st">"cores"</span>, <span class="st">"depth_series"</span>, <span class="st">"sites"</span>, <span class="st">"species"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(blue_carbon<span class="sc">$</span>fraction_carbon <span class="sc">&lt;</span> <span class="dv">0</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="co"># 467 negative values. </span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace negative numbers wiht NAs</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>blue_carbon<span class="sc">$</span>fraction_carbon[blue_carbon<span class="sc">$</span>fraction_carbon <span class="sc">&lt;</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Check range to ensure negative values were </span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(blue_carbon<span class="sc">$</span>fraction_carbon)</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove Nas from entire dataset</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>blue_carbon <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(blue_carbon)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co">#..... Ensure R keeps data within bounds....</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>blue_carbon<span class="sc">$</span>fraction_carbon[blue_carbon<span class="sc">$</span>fraction_carbon <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> .<span class="dv">999</span> </span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>blue_carbon<span class="sc">$</span>fraction_carbon[blue_carbon<span class="sc">$</span>fraction_carbon <span class="sc">==</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> .<span class="dv">0001</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="co"># clear up environment</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">c</span>(<span class="st">"cores"</span>, <span class="st">"depth_series"</span>, <span class="st">"sites"</span>, <span class="st">"species"</span>))</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(blue_carbon<span class="sc">$</span>habitat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="data-exploration" class="level2">
 <h2 class="anchored" data-anchor-id="data-exploration">Data Exploration</h2>
-<p>In order to understand what analysis needs to be done, some preliminary data exploration is useful.</p>
+<p>In order to understand what analysis needs to be done, some preliminary data exploration is useful. I am particulalry interested in the spread of data for <code>fraction_carbon</code>.</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>frac_car_plot <span class="ot">&lt;-</span> blue_carbon <span class="sc">%&gt;%</span> </span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(fraction_carbon)) <span class="sc">+</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">fill =</span> <span class="st">"#345084FF"</span>) <span class="sc">+</span></span>
@@ -254,9 +267,7 @@ window.Quarto = {
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>frac_car_plot</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
-</div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -267,14 +278,17 @@ window.Quarto = {
 </div>
 <p>As you can see from the graph above, fraction carbon is left skewed signifying that it does not follow a normal distribution.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>blue_carbon <span class="sc">%&gt;%</span> </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">y =</span> fraction_carbon, <span class="at">color =</span> habitat)) <span class="sc">+</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_paletteer_d</span>(<span class="st">"nationalparkcolors::Acadia"</span>) <span class="sc">+</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Soil Organic Matter (dimensionless)"</span>, </span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Fraction carbon (dimensionless)"</span>, </span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Relationship Between Soil Organic Matter and Fraction Carbon"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>blue_carbon <span class="sc">%&gt;%</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">y =</span> fraction_carbon, <span class="at">color =</span> habitat)) <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_paletteer_d</span>(<span class="st">"nationalparkcolors::Acadia"</span>) <span class="sc">+</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>() <span class="sc">+</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Soil Organic Matter (dimensionless)"</span>, </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Fraction carbon (dimensionless)"</span>, </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Relationship Between Soil Organic Matter and Fraction Carbon"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -283,10 +297,18 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<p>INTERPRET MORE HERE</p>
 </section>
 <section id="statistical-model-beta-regression" class="level2">
 <h2 class="anchored" data-anchor-id="statistical-model-beta-regression">Statistical model: Beta Regression</h2>
-<p>Since my response variable, <code>fraction_carbon</code> is a fraction between 0 and 1, and is not normally distributed around the mean, I will use <em>Beta regression</em>. Beta regression models the mean of a proportion or fraction as a function of predictors.</p>
+<p>Since my response variable, <code>fraction_carbon</code> is a fraction between 0 and 1, and is not normally distributed around the mean, I will use <em>Beta regression</em> (<span class="citation" data-cites="CribariNetoZeileis2010">Cribari–Neto and Zeileis (<a href="#ref-CribariNetoZeileis2010" role="doc-biblioref">2010</a>)</span>). Beta regression models the mean of a proportion or fraction as a function of predictors. My predictors in this study are the following:</p>
+<ul>
+<li><code>fraction_organic_matter</code>: Mass of organic matter relative to sample dry mass (dimensionless)</li>
+<li><code>max_ depth</code>: Maximum depth of a sampling increment (centimeters)</li>
+</ul>
+<p>Why include <code>max_depth</code>? Deeper soils might have more organic matter accumulation and fraction carbon can change with depth (e.g., shallower layers of soil may have higher carbon than deeper layers).</p>
+<p>I represented these causal relationships with a DAG (directed acyclic graph):</p>
+<p><a href="images/DAG-final-project.png">!DAG</a></p>
 <section id="hypothesis" class="level3">
 <h3 class="anchored" data-anchor-id="hypothesis">Hypothesis</h3>
 <p>Question: How does soil organic matter affect carbon?</p>
@@ -294,9 +316,6 @@ window.Quarto = {
 <li><p>H₀ (null hypothesis): Soil organic matter has no effect on fraction carbon in the soil.</p></li>
 <li><p>H₁ (alternative hypothesis): Higher soil organic matter is associated with higher fraction carbon.</p></li>
 </ul>
-<p>Why include <code>max_depth</code>? Deeper soils might have more organic matter accumulation and fraction carbon can change with depth (e.g., shallower layers of soil may have higher carbon than deeper layers). This is measured in cm.</p>
-<p>I represented these casual relationships with a DAG (directed acyclic graph):</p>
-<p><a href="images/DAG-final-project.png">!DAG</a></p>
 </section>
 <section id="statistical-notation-of-model" class="level3">
 <h3 class="anchored" data-anchor-id="statistical-notation-of-model">Statistical Notation of model</h3>
@@ -316,54 +335,57 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 </section>
 <section id="fit-model-to-simulated-data" class="level2">
 <h2 class="anchored" data-anchor-id="fit-model-to-simulated-data">Fit model to simulated data</h2>
-<p>In order to determine if a Beta regression model is fit for this data, I will <em>simulate</em> data and perform an analysis on the simulated data. This includes the following steps:</p>
+<p>In order to determine if a Beta regression model is fit for this data, I will <em>simulate</em> data and perform an analysis on the simulated data. EXPLAIN MORE ABOUT DATA SIMULATION. This includes the following steps:</p>
 <ol type="1">
 <li>define sample size</li>
 <li>choose parameters for <span class="math inline">\(\beta\)</span></li>
-<li>define range for predictors: This step is not necessary but helpful in simulating real <em>fake</em> data.</li>
+<li>define range for predictors: This step is not necessary but helpful in simulating real <em>fake</em> data. In this step, I used the <code>runif()</code> function</li>
 <li>define linear equation and logit function</li>
 <li>generate response</li>
 <li>fit model to simulated data</li>
 </ol>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># set seed for reproducibility</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Define sample size</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span> <span class="co"># large enough</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Choose parameters </span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>beta_0 <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="co"># intercept (fraction carbon)</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>beta_1 <span class="ot">&lt;-</span> <span class="fl">0.8</span>  <span class="co"># effect of fraction organic matter</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>beta_2 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.01</span> <span class="co"># effect of max_depth</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">&lt;-</span> <span class="fl">0.8</span> <span class="co"># precision parameter </span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. define predictor ranges (x's)</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># (n=sample size, min, max)</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>fraction_organic_matter <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="fl">0.05</span>, <span class="fl">0.2</span>)</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>max_depth <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">30</span>)</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Linear predictor and Logit response</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># set logit_mu </span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>logit_mu <span class="ot">&lt;-</span> beta_0 <span class="sc">+</span> beta_1 <span class="sc">*</span> fraction_organic_matter <span class="sc">+</span> beta_2 <span class="sc">*</span> max_depth </span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># set transformation </span></span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Inverse logit </span></span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>logit_mu)) <span class="co"># mu = mean of beta distribution</span></span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Generate response with rbeta(). Look up documentation</span></span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>shape1 <span class="ot">&lt;-</span> mu <span class="sc">*</span> phi</span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>shape2 <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> mu) <span class="sc">*</span> phi</span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>fraction_carbon <span class="ot">&lt;-</span> <span class="fu">rbeta</span>(n, shape1, shape2)</span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Create dataframe for simulated data</span></span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>sim_blue_carbon <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(fraction_carbon, fraction_organic_matter, max_depth)</span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a><span class="co"># 6. Fit model </span></span>
-<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>betareg_sim_mdl <span class="ot">&lt;-</span> <span class="fu">glmmTMB</span>(fraction_carbon <span class="sc">~</span> fraction_organic_matter <span class="sc">+</span> max_depth, <span class="at">data =</span> sim_blue_carbon, <span class="at">family =</span> <span class="fu">beta_family</span>())</span>
-<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Summarize model</span></span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(betareg_sim_mdl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># set seed for reproducibility</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Define sample size</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">10000</span> <span class="co"># large enough</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Choose parameters </span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>beta_0 <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="co"># intercept (fraction carbon)</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>beta_1 <span class="ot">&lt;-</span> <span class="fl">0.8</span>  <span class="co"># effect of fraction organic matter</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>beta_2 <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.01</span> <span class="co"># effect of max_depth</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>phi <span class="ot">&lt;-</span> <span class="fl">0.9</span> <span class="co"># precision parameter </span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. define predictor ranges (x's)</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># (n=sample size, min, max)</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>fraction_organic_matter <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="fl">0.05</span>, <span class="fl">0.9</span>)</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>max_depth <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">30</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Linear predictor and Logit response</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># set logit_mu </span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>logit_mu <span class="ot">&lt;-</span> beta_0 <span class="sc">+</span> beta_1 <span class="sc">*</span> fraction_organic_matter <span class="sc">+</span> beta_2 <span class="sc">*</span> max_depth </span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># set transformation </span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Inverse logit </span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>logit_mu)) <span class="co"># mu = mean of beta distribution</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Generate response with rbeta(). Look up documentation.</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>shape1 <span class="ot">&lt;-</span> mu <span class="sc">*</span> phi</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>shape2 <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">-</span> mu) <span class="sc">*</span> phi</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>fraction_carbon <span class="ot">&lt;-</span> <span class="fu">rbeta</span>(n, shape1, shape2)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="co"># R computer error: ensure that 0 &lt; fraction_carbon &lt; 1</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>fraction_carbon[fraction_carbon <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> .<span class="dv">999</span> </span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>fraction_carbon[fraction_carbon <span class="sc">==</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> .<span class="dv">0001</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Create dataframe for simulated data</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>sim_blue_carbon <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(fraction_carbon, fraction_organic_matter, max_depth)</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="co"># 6. Fit model </span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>betareg_sim_mdl <span class="ot">&lt;-</span> <span class="fu">glmmTMB</span>(fraction_carbon <span class="sc">~</span> fraction_organic_matter <span class="sc">+</span> max_depth, <span class="at">data =</span> sim_blue_carbon, <span class="at">family =</span> <span class="fu">beta_family</span>())</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Summarize model</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(betareg_sim_mdl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="cell-output-display">
@@ -379,17 +401,17 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Intercept</td>
-<td style="text-align: right;">0.4436133</td>
+<td style="text-align: right;">0.4789468</td>
 <td style="text-align: right;">0.50</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Fraction Organic Matter</td>
-<td style="text-align: right;">1.9178514</td>
+<td style="text-align: right;">0.8298071</td>
 <td style="text-align: right;">0.80</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Max Depth(cm)</td>
-<td style="text-align: right;">-0.0115171</td>
+<td style="text-align: left;">Max Depth</td>
+<td style="text-align: right;">-0.0097642</td>
 <td style="text-align: right;">-0.01</td>
 </tr>
 </tbody>
@@ -402,28 +424,34 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 <h2 class="anchored" data-anchor-id="fit-model-to-real-life-data">Fit model to real-life data</h2>
 <p>In this section I will fit the model to real life data from the Smithsonian’s Coastal Carbon Network. I will use the <code>glmmTMB</code> package and specify the family as <code>beta_family</code> for a beta regression.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Fit beta regression model..... </span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>betareg_mdl <span class="ot">&lt;-</span> <span class="fu">glmmTMB</span>(fraction_carbon <span class="sc">~</span> fraction_organic_matter <span class="sc">+</span> max_depth, </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">data =</span> blue_carbon[<span class="dv">1</span><span class="sc">:</span><span class="dv">10000</span>, ], <span class="at">family =</span> <span class="fu">beta_family</span>()) <span class="co"># subset data for faster processing </span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Summarize model.....</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>betareg_mdl_sum <span class="ot">&lt;-</span> <span class="fu">summary</span>(betareg_mdl)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Extract coefficients..... </span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"># beta_0 (intercept)</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>beta_0 <span class="ot">&lt;-</span> betareg_mdl_sum<span class="sc">$</span>coefficients<span class="sc">$</span>cond[<span class="st">"(Intercept)"</span>, <span class="st">"Estimate"</span>] </span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co"># beta_1 (slope of reference)</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>beta_1 <span class="ot">&lt;-</span> betareg_mdl_sum<span class="sc">$</span>coefficients<span class="sc">$</span>cond[<span class="st">"fraction_organic_matter"</span>, <span class="st">"Estimate"</span>]</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co"># beta_2 (change in intercepts)</span></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>beta_2 <span class="ot">&lt;-</span> betareg_mdl_sum<span class="sc">$</span>coefficients<span class="sc">$</span>cond[<span class="st">"max_depth"</span>, <span class="st">"Estimate"</span>]</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Dispersion parameter</span></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>dispersion <span class="ot">&lt;-</span> <span class="fu">sigma</span>(betareg_mdl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Fit beta regression model..... </span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>betareg_mdl <span class="ot">&lt;-</span> <span class="fu">glmmTMB</span>(fraction_carbon <span class="sc">~</span> fraction_organic_matter <span class="sc">+</span> max_depth, </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">data =</span> blue_carbon, <span class="at">family =</span> <span class="fu">beta_family</span>()) <span class="co"># subset data for faster processing </span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#betareg_mdl_2 &lt;- glmmTMB(fraction_carbon ~ fraction_organic_matter + max_depth, </span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                      <span class="co">#data = blue_carbon[1:10000, ], family = beta_family()) </span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Summarize model.....</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>betareg_mdl_sum <span class="ot">&lt;-</span> <span class="fu">summary</span>(betareg_mdl)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Extract coefficients..... </span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># beta_0 (intercept)</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>beta_0 <span class="ot">&lt;-</span> betareg_mdl_sum<span class="sc">$</span>coefficients<span class="sc">$</span>cond[<span class="st">"(Intercept)"</span>, <span class="st">"Estimate"</span>] </span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="co"># beta_1 (slope of reference)</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>beta_1 <span class="ot">&lt;-</span> betareg_mdl_sum<span class="sc">$</span>coefficients<span class="sc">$</span>cond[<span class="st">"fraction_organic_matter"</span>, <span class="st">"Estimate"</span>]</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="co"># beta_2 (change in intercepts)</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>beta_2 <span class="ot">&lt;-</span> betareg_mdl_sum<span class="sc">$</span>coefficients<span class="sc">$</span>cond[<span class="st">"max_depth"</span>, <span class="st">"Estimate"</span>]</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Std. Errors </span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co"># P-values </span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Dispersion parameter</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>dispersion <span class="ot">&lt;-</span> <span class="fu">sigma</span>(betareg_mdl)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="cell-output-display">
@@ -438,53 +466,120 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Intercept</td>
-<td style="text-align: right;">-5.4448087</td>
+<td style="text-align: right;">-2.2069219</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Fraction Organic Matter</td>
-<td style="text-align: right;">8.6053830</td>
+<td style="text-align: right;">1.7919272</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Max Depth(cm)</td>
-<td style="text-align: right;">0.0277703</td>
+<td style="text-align: left;">Max Depth</td>
+<td style="text-align: right;">-0.0000365</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
 </section>
+<section id="model-interpretation" class="level2">
+<h2 class="anchored" data-anchor-id="model-interpretation">Model interpretation</h2>
+<ul>
+<li>Effect of fraction organic matter on fraction carbon →</li>
+<li>Effect of max depth on fraction carbon →</li>
+</ul>
+</section>
 <section id="generate-predictions" class="level2">
 <h2 class="anchored" data-anchor-id="generate-predictions">Generate predictions</h2>
-<p>In this section I will generate predictions to visualize what the relationship will be for new data.</p>
+<p>In this section I will generate predictions to visualize what the relationship will be for new data. This includes the following steps:</p>
+<ol type="1">
+<li>Create prediction grid/data frame where <code>fraction_organic_matter</code> is allowed to vary based on a specified sequence while <code>max_depth</code> is held constant (with its mean).</li>
+<li>Use my Beta regression model fitted to real-life data (<code>betareg_mdl</code>) to generate predictions for <code>fraction_carbon</code>. This produces predicted beta-regression means. Ensure this dataframe is in the response space so that it returns values between 0 and 1.</li>
+</ol>
+<p>Why am I holding <code>max_depth</code> constant? I want to show how <code>fraction_carbon</code> changes with one predictor (<code>fraction_organic_matter</code>). This isolates the effect of organic matter on carbon.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Create prediction grid.....</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>pred_grid <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">fraction_organic_matter =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.001</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">max_depth =</span> <span class="fu">mean</span>(blue_carbon<span class="sc">$</span>max_depth, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># ......Generate predictions.....</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>betareg_grid <span class="ot">&lt;-</span> pred_grid <span class="sc">%&gt;%</span> </span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">predictions =</span> <span class="fu">predict</span>(<span class="at">object =</span> betareg_mdl, <span class="co"># glm</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">newdata =</span> pred_grid, <span class="co"># expand grid data</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">type =</span> <span class="st">"response"</span>)) <span class="co"># response link </span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Plot predictions.....</span></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>predict_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(betareg_grid, <span class="fu">aes</span>(fraction_organic_matter, <span class="at">y =</span> predictions)) <span class="sc">+</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">col =</span> <span class="st">"#345084FF"</span> ) <span class="sc">+</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span> <span class="st">"Fraction Organic Matter (dimensionless)"</span>, </span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Fraction Carbon (dimensionless)"</span>, </span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Predicted Fraction Carbon"</span>) <span class="sc">+</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co"># View plot</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>predict_plot</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Create prediction grid.....</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pred_grid <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">fraction_organic_matter =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">0</span>, <span class="at">to =</span> <span class="dv">1</span>, <span class="at">by =</span> <span class="fl">0.001</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">max_depth =</span> <span class="fu">mean</span>(blue_carbon<span class="sc">$</span>max_depth, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="co"># hold max depth constant </span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># ......Generate predictions.....</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>betareg_grid <span class="ot">&lt;-</span> pred_grid <span class="sc">%&gt;%</span> </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">predictions =</span> <span class="fu">predict</span>(<span class="at">object =</span> betareg_mdl, <span class="co"># glm</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">newdata =</span> pred_grid, <span class="co"># expand grid data</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">type =</span> <span class="st">"response"</span>)) <span class="co"># response link </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="calculate-confidence-intervals" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-confidence-intervals">Calculate Confidence Intervals</h3>
+<p>In this section I will calculate the degree of certainty my predictions have using <em>confidence intervals</em>. A confidence interval is a range we are confident contains the population parameter.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Bootstrap nrow(blue_carbon)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>boot <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>, \(i) {</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># boot strap sample</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  boot_sample <span class="ot">&lt;-</span> <span class="fu">slice_sample</span>(blue_carbon, <span class="at">n =</span> <span class="dv">1000</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>) <span class="co"># replace the bootstrap </span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># fit model </span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  boot_mdl <span class="ot">&lt;-</span> <span class="fu">glmmTMB</span>(fraction_carbon <span class="sc">~</span> fraction_organic_matter <span class="sc">+</span> max_depth, <span class="co">#</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                      <span class="at">family =</span> <span class="fu">beta_family</span>(<span class="at">link =</span> <span class="st">"logit"</span>), </span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>                      <span class="at">data =</span> boot_sample)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add predictions </span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  pred_grid <span class="sc">%&gt;%</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">predictions =</span> <span class="fu">predict</span>(boot_mdl, <span class="at">newdata =</span> pred_grid, <span class="at">type =</span> <span class="st">"response"</span>),</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">boot =</span> i)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co"># build confidence interval </span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>boot_ci <span class="ot">&lt;-</span> boot <span class="sc">%&gt;%</span> </span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(fraction_organic_matter, max_depth) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">ci_lwr =</span> <span class="fu">quantile</span>(predictions, <span class="fl">0.025</span>),</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">ci_upr =</span> <span class="fu">quantile</span>(predictions, <span class="fl">0.975</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'fraction_organic_matter'. You can override
+using the `.groups` argument.</code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Plot predictions.....</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>predict_plot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Predicted line</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> betareg_grid, </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>            <span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">y =</span> predictions), </span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">color =</span> <span class="st">"#345084FF"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Original data points</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> blue_carbon, </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">y =</span> fraction_carbon),</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"#FF6F61"</span>) <span class="sc">+</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Confidence interval</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">data =</span> boot_ci, </span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">ymin =</span> ci_lwr, <span class="at">ymax =</span> ci_upr), </span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>              <span class="at">fill =</span> <span class="st">"#345084FF"</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Fraction Organic Matter (dimensionless)"</span>, </span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Fraction Carbon (dimensionless)"</span>, </span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Predicted Fraction Carbon"</span>) <span class="sc">+</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>)) <span class="co"># center title </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>predict_plot</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="blog-post_files/figure-html/Generate%20predictions-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="blog-post_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
+</section>
 </section>
 <section id="conclusion-and-next-steps" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion-and-next-steps">Conclusion and next steps</h2>
@@ -500,19 +595,22 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-CribariNetoZeileis2010" class="csl-entry" role="listitem">
+Cribari–Neto, Francisco, and Achim Zeileis. 2010. <span>“Beta Regression.”</span> <em>Journal of Statistical Software</em> 34 (2). <a href="https://doi.org/10.18637/jss.v034.i02">https://doi.org/10.18637/jss.v034.i02</a>.
+</div>
 <div id="ref-USGS_BlueCarbon_2024" class="csl-entry" role="listitem">
 Survey, U. S. Geological. 2024. <span>“Blue Carbon.”</span> <a href="https://www.usgs.gov/science/science-explorer/climate/blue-carbon" class="uri">https://www.usgs.gov/science/science-explorer/climate/blue-carbon</a>.
 </div>
 </div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{2025,
   author = {},
   title = {Investigating {Blue} {Carbon} with {Beta} {Regression}},
-  date = {2025-11-12},
+  date = {2025-12-04},
   url = {https://isabellasegarra.github.io/posts/my-first-blog-post},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-2025" class="csl-entry quarto-appendix-citeas" role="listitem">
 <span>“Investigating Blue Carbon with Beta Regression.”</span> 2025.
-November 12, 2025. <a href="https://isabellasegarra.github.io/posts/my-first-blog-post">https://isabellasegarra.github.io/posts/my-first-blog-post</a>.
+December 4, 2025. <a href="https://isabellasegarra.github.io/posts/my-first-blog-post">https://isabellasegarra.github.io/posts/my-first-blog-post</a>.
 </div></div></section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
