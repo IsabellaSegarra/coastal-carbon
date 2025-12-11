@@ -449,7 +449,7 @@ After plotting this data I noticed the level of *noise* or outliers deviating fr
 
 ## Conclusion and next steps
 
-## Refrences
+## References
 
 ## Github
 [Link to Github repository](https://github.com/IsabellaSegarra/coastal-carbon)
