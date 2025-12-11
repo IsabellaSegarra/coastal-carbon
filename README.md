@@ -28,7 +28,11 @@ This repository contains the following file structure:
 ├── README.md
 └── references.bib
 ```
-To view the entire analysis, open [analysis.qmd]()
+## Important Information
+
+To view the entire analysis, open [analysis.qmd](https://github.com/IsabellaSegarra/coastal-carbon/blob/902ec47d4f98faa60126f1300d0201188a963aeb/analysis.qmd). 
+
+To view this analysis as a blog post, [visit my website](https://isabellasegarra.github.io/posts/2025-12-04-eds222-blog/blue-carbon-beta-regression.html). 
 
 # Data Access 
 The data for this study can be accessed through the Smithsonian Environmental Research Center's [Coastal Carbon Network](https://serc.si.edu/coastalcarbon). Download data through the [data portal](https://smithsonian.figshare.com/articles/dataset/Database_Coastal_Carbon_Library_Version_1_0_0_/21565671). 
