@@ -12,18 +12,24 @@ bibliography: references.bib
 ---
 
 ## Research Question
-Large amounts of carbon is naturally stored in the world's oceans and in the soil of coastal wetlands. This is referred to as blue carbon. 
+Large amounts of carbon is naturally stored in the world's oceans and in the soil of coastal wetlands. This is referred to as *blue carbon*. 
  
-Blue carbon is unique due to its ability to store or sequester carbon at a much faster rate than terrestrial ecosystems like forests. This carbon is stored in the soils of these ecosystems -- marsh, sea grass, mangrove, salt marshes. These habitats are of growing interest as greenhouse gases continue to accumulate in the atmosphere. Understanding the biogeochemical processes that make up carbon sequestration is important for advancing blue carbon management as a solution to climate change.  (@USGS_BlueCarbon_2024). ADD MORE ABOUT HOW SOM INFLUENCES CARBON DEPOSITS 
+Blue carbon is unique due to its ability to store or sequester carbon at a much faster rate than terrestrial ecosystems like forests. This carbon is stored in the soils of these ecosystems -- marsh, sea grass, mangrove, salt marshes. These habitats are of growing interest as greenhouse gases continue to accumulate in the atmosphere. Understanding the biogeochemical processes that make up carbon sequestration is important for advancing blue carbon management as a solution to climate change.  (@USGS_BlueCarbon_2024). 
+
+![Graphic of blue carbon ecosystems and carbon sequestration. Source:USGS](images/blue_carbon_graphic.png)
 
 For this project, I will fit a **Beta Regression** model to answer the
 following question:
 
--   **How does soil organic matter affect carbon?**
+-   **How does soil organic matter affect carbon in coastal ecosystems?**
+
+Soil organic matter is the organic matter within the soil that is deposited from organisms at various stages of decomposition. Soil organic matter is a key indicator of soil carbon in an ecosystem. Soil carbon is the fraction of carbon within the soil organic matter. 
 
 ## Data Background
 
-This data is from the Smithsonian Environmental Research Center Coastal Carbon Network (@ERC_CoastalCarbon). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They prove open-access to data sets for researchers and students like me. The data set itself is originally over 15,000,000 observations. It includes data on soil measurements such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation.
+This data is from the Smithsonian Environmental Research Center Coastal Carbon Network (@SERC_CoastalCarbon). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They provide access to data sets for researchers and students like me. The dataset itself is originally over 15,000,000 observations. It includes data on soil measurements such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation. 
+
+![Coastal Carbon Network](images/ccn_logo.png){fig-align="center" width="10%"}
 
 ## Data wrangling
 In this section I filtered the data for only variables of interest (`fraction_carbon`, `fraction_organic_matter`, `max_depth`, `habitat`) as well as ensured that `fraction_carbon` only contained fractional data between 0 and 1. For this dataset, I also filtered to the three most researched habitats for blue carbon: mangrove, seagrass, and marsh.
@@ -144,18 +150,22 @@ As you can in `fig 1.`, fraction carbon is left skewed signifying that it does n
 
 ```{r, fig.cap= "Fig 2. Relationship between soil organic matter and fraction carbon"}
 #| label: Data viz 2
+#| message: false 
 #| code-fold: true
 
-blue_carbon %>% 
+my_palette <- c("#9FD0D6", "#F2A176", "#985D73")
+
+som_car_habitat_plt <- blue_carbon %>% 
   ggplot(aes(x = fraction_organic_matter, y = fraction_carbon, color = habitat)) +
   geom_point(alpha = 0.2) +
   geom_smooth(aes(group = habitat), method = "lm", se = FALSE) +
-  scale_color_paletteer_d("MoMAColors::Andri") +
+  scale_color_manual(values = my_palette) +
   theme_classic() +
   labs(x = "Soil Organic Matter (dimensionless)", 
        y = "Fraction carbon (dimensionless)", 
        title = "Relationship between soil organic matter and fraction carbon")
 
+som_car_habitat_plt
 ```
 As you can in `fig 2`, soil organic matter has follows a linear pattern with fraction carbon. 
 There is some notable variation between habitat, especially between seagrass and marsh and mangrove habitats, however the shape of the data is similar for the majority of habitats. 
@@ -175,7 +185,7 @@ Why exclude `habitat` from the model? I am interested in the overall relationshi
 
 I represented these causal relationships with a DAG (directed acyclic graph): 
 
-[!DAG](images/DAG.png)
+![DAG](images/DAG.png)
 
 ### Hypothesis
 
@@ -360,8 +370,12 @@ betareg_mdl_tbl %>%
 
 ```
 ## Model interpretation
-- Effect of fraction organic matter on fraction carbon → 
-- Effect of max depth on fraction carbon → 
+The beta regression analysis shows a low baseline of fraction carbon in coastal carbon ecosystems when there is no soil organic matter. Soil organic shows a strong, significant positive effect on fraction carbon. As for max depth, there is a very small effect on fraction carbon, however it is not significant enough in this model to definitely say deeper soils have more/less carbon. 
+
+- Effect of fraction organic matter on fraction carbon → significant
+- Effect of max depth on fraction carbon → not significant 
+
+*Reject null hypothesis thats oil organic matter has no effect on fraction carbon in the soil* 
 
 ## Generate predictions
 In this section I will generate predictions to visualize what the relationship will be for new data. This includes the following steps:
@@ -373,6 +387,7 @@ Why am I holding `max_depth` constant? I want to show how `fraction_carbon` chan
 
 ```{r}
 #| label: Generate predictions
+#| message: false
 
 # .....Create prediction grid.....
 pred_grid <- expand_grid(fraction_organic_matter = seq(from = 0, to = 1, by = 0.001)) %>% 
@@ -390,6 +405,7 @@ betareg_grid <- pred_grid %>%
 In this section I will calculate the degree of certainty my predictions have using *confidence intervals*. A confidence interval is a range we are confident contains the population parameter.
 ```{r}
 #| label: Calculate confidence intervals
+#| message: false
 
 # Bootstrap nrow(blue_carbon)
 
@@ -419,21 +435,19 @@ boot_ci <- boot %>%
 
 ```{r}
 #| code-fold: true
+#| message: false 
 # .....Plot predictions.....
+
 
 predict_plot <- ggplot() +
   # Predicted line
   geom_line(data = betareg_grid, 
             aes(x = fraction_organic_matter, y = predictions), 
             color = "#345084FF", size = 1) +
-  # Original data points
-  geom_point(data = blue_carbon, 
-             aes(x = fraction_organic_matter, y = fraction_carbon),
-             alpha = 0.5, size = 2, color = "#FF6F61") +
-  # Confidence interval
+  # Confidence Interval 
   geom_ribbon(data = boot_ci, 
               aes(x = fraction_organic_matter, ymin = ci_lwr, ymax = ci_upr), 
-              fill = "#345084FF", alpha = 0.2) +
+              fill = "#9FD0D6", alpha = 0.2) +
   labs(
     x = "Fraction Organic Matter (dimensionless)", 
     y = "Fraction Carbon (dimensionless)", 
@@ -443,13 +457,48 @@ predict_plot <- ggplot() +
 
 predict_plot
 
+predict_plot_data <- ggplot() +
+  # Predicted line
+  geom_line(data = betareg_grid, 
+            aes(x = fraction_organic_matter, y = predictions), 
+            color = "#345084FF", size = 1) +
+  # Confidence Interval 
+  geom_ribbon(data = boot_ci, 
+              aes(x = fraction_organic_matter, ymin = ci_lwr, ymax = ci_upr), 
+              fill = "#9FD0D6", alpha = 0.2) +
+  # Original data points
+  geom_point(data = blue_carbon, 
+             aes(x = fraction_organic_matter, y = fraction_carbon),
+             alpha = 0.5, size = 2, color = "#345084FF") +
+  labs(
+    x = "Fraction Organic Matter (dimensionless)", 
+    y = "Fraction Carbon (dimensionless)", 
+    title = "Predicted Fraction Carbon with raw data") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5)) # center title 
+
+predict_plot_data
+
+library(patchwork)
+predict_plot + predict_plot_data
+
 
 ```
+The predicted plot predicts an increase in fraction carbon as organic matter increases. When plotted 
+
 After plotting this data I noticed the level of *noise* or outliers deviating from the linear direction in the data. This noise is due to 
 
+
 ## Conclusion and next steps
+Soil organic matter is a known predictor for fraction carbon, as organic matter is the material that directly contributes to fraction carbon. As expected, the results of the beta regression model, showed significance for soil organic matter's effect on fraction carbon. Max depth did not 
+- was your hypothesis agreed with 
+- discuss the biogeochem that backs up the analysis 
+- discuss why max dpeth wasn't significant
+- discuss about sampling error for habitats + the messiness/noisnesss of the data set 
+- discuss future avenues for this study (looking into isolating the effect of habitat)
+- future expansion: use multinomial regression to predict habitat from fraction carbon, and other variables in the data set 
 
 ## References
 
 ## Github
-[Link to Github repository](https://github.com/IsabellaSegarra/coastal-carbon)
+[To view this analysis, visit Github repository](https://github.com/IsabellaSegarra/coastal-carbon)
