@@ -31,7 +31,7 @@ This data is from the Smithsonian Environmental Research Center's Coastal Carbon
 
 ![Coastal Carbon Network logo](images/ccn_logo.png){fig-align="center" width="20%"}
 
-## Data wrangling
+## Data Wrangling
 In this section I filtered the data for only variables of interest (`fraction_carbon`, `fraction_organic_matter`, `max_depth`, `habitat`) as well as ensured that `fraction_carbon` only contained fractional data between 0 and 1. For this dataset, I also filtered to the three most researched habitats for blue carbon: mangrove, seagrass, and marsh.
 ```{r}
 #| label: library set-up 
@@ -172,7 +172,7 @@ som_car_habitat_plt
 ```
 As you can see in Fig 2., soil organic matter follows a generally linear pattern with fraction carbon. There is some notable variation between habitats, especially between seagrass compared to marsh and mangrove, but the overall shape of the data is similar across most habitats. Despite these differences, all three habitats show broadly comparable patterns in their relationship between soil organic matter and fraction carbon based on this graph. 
 
-## Statistical model: Beta Regression
+## Statistical Model: Beta Regression
 Since my response variable, `fraction_carbon` is a fraction between 0
 and 1, and is not normally distributed around the mean, I will use *Beta regression* (@CribariNetoZeileis2010). Beta regression models the mean of a proportion or fraction as a function of predictors. My predictors in this study are the following:
 
@@ -200,7 +200,7 @@ Question: How does soil organic matter affect carbon?
     associated with higher fraction carbon.
 
 
-### Model statistical notation
+### Model Statistical Notation
 $$
 \begin{align}
 \text{carbon} &\sim \text{Beta}(\mu, \phi) \\
@@ -213,7 +213,7 @@ $$
 - $\phi$ is the precision parameter of the beta distribution. This controls the variance.
 - coefficients: $\beta_0$ is the intercept; $\beta_1$ and $\beta_2$ are coefficients for the predictors fraction organic matter and max depth 
 
-## Fit model to simulated data
+## Fit Model to Simulated Data
 
 In order to determine if a Beta regression model is fit for this data, I
 will *simulate* data and perform an analysis on the simulated data. This step is also helpful to see how well you understand the model you plan to use. This includes the following steps:
@@ -308,7 +308,7 @@ sim_df_assess%>% kable(col.names = c("Coefficient", "Simulation Estimate", "Actu
 ```
 The model seems to recover parameters well. This is good evidence that beta regression is the model for this data. 
 
-## Fit model to real-life data
+## Fit Model to Real Data
 Now, I will fit a beta regression model to real life data from the Smithsonian's Coastal Carbon Network. I will use the `glmmTMB` package and specify the family as `beta_family` for a beta regression. 
 ```{r}
 #| label: Fit model 
@@ -374,7 +374,7 @@ betareg_mdl_tbl %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
-## Model interpretation
+## Model Interpretation
 The beta regression analysis shows a low baseline of fraction carbon in coastal carbon ecosystems when there is no soil organic matter. Soil organic shows a strong, significant positive effect on fraction carbon. As for max depth, there is a very small negative effect on fraction carbon, however it is not significant enough in this model to definitively say deeper soils have less carbon. All of these effects are transformed in logit space. 
 
 - Effect of fraction organic matter on fraction carbon → significant
@@ -382,7 +382,7 @@ The beta regression analysis shows a low baseline of fraction carbon in coastal 
 
 **Reject null hypothesis that soil organic matter has no effect on fraction carbon in the soil.**
 
-## Generate predictions
+## Generate Predictions
 In this section I will generate predictions to visualize the predicted effect of soil organic matter on fraction carbon. This step is important to visualize the effect of the predictor on the response and interpret their relationship with predicted data. This includes the following steps:
 
 1. Create prediction grid/data frame where `fraction_organic_matter` is allowed to vary based on a specified sequence while `max_depth` is held constant (with its mean). 
@@ -496,10 +496,10 @@ predict_plot + predict_plot_data
 The predicted plot above (fig 3.) shows an increase in fraction carbon as organic matter increases. This is consistent with my findings from the beta regression model (p < 2e-16). When looking at the confidence interval, there is more certainty for organic matter proportions between 0.00 and 0.30 fractions. There is less certainty in the relationship as organic matter increases and fraction carbon increase, which is typical for confidence intervals as the level of certainty decreases as the amount of available data decreases. When plotting the raw data onto the predicted model in fig 4., you can see that the data trajectory differs from the predicted line. There can be many reasons for this behavior; my main idea is that the data itself has natural variation, as is common in all environmental datasets. When referencing fig 2., you can see that the "check-mark" shape of the data is due to variation in habitat (i.e., seagrass fraction carbon measurements varied). Since my model did not account for habitat, the predicted model may underfit the data. This natural "noise" in the data does not signify that the model failed, but rather shows that there is real-world variation within this dataset.
 
 
-## Conclusion and next steps
+## Conclusion and Next Steps
 Soil organic matter is a known predictor of fraction carbon, as organic matter is the material that directly contributes to fraction carbon. As hypothesized, the results of the beta regression model showed a significant effect of soil organic matter on fraction carbon (p < 2e-16). Max depth’s effect was not significant, which is important to note since it was included in this study based on the assumption that it might confound the relationship between fraction carbon and organic matter. From an ecological standpoint, depth may only have a strong effect at extremes (e.g., very shallow or very deep soils), and small variations may not noticeably influence fraction carbon.
 
 In conclusion, understanding the biogeochemical processes of these unique ecosystems is crucial. In future studies, it would be interesting to isolate the effect of habitat on fraction carbon, or to include the interactive effects of habitat and soil organic matter. This could provide a more detailed understanding of the factors controlling carbon distribution in these systems.
 
 ## Github
-[To view this analysis, visit Github repository](https://github.com/IsabellaSegarra/coastal-carbon)
+[To view this analysis, visit my Github repository](https://github.com/IsabellaSegarra/coastal-carbon)
