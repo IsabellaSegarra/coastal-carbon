@@ -1,5 +1,5 @@
 ---
-title: "Investigating Blue Carbon with Beta Regression"
+title: "Investigating Blue Carbon Ecosystems with Beta Regression"
 description: "A brief statistical analysis of soil carbon."
 date: 2025-12-4
 categories: [MEDS, R, data-viz] #add hyphen for multiple words
@@ -14,22 +14,22 @@ bibliography: references.bib
 ## Research Question
 Large amounts of carbon is naturally stored in the world's oceans and in the soil of coastal wetlands. This is referred to as *blue carbon*. 
  
-Blue carbon is unique due to its ability to store or sequester carbon at a much faster rate than terrestrial ecosystems like forests. This carbon is stored in the soils of these ecosystems -- marsh, sea grass, mangrove, salt marshes. These habitats are of growing interest as greenhouse gases continue to accumulate in the atmosphere. Understanding the biogeochemical processes that make up carbon sequestration is important for advancing blue carbon management as a solution to climate change.  (@USGS_BlueCarbon_2024). 
+Blue carbon is unique due to its ability to store or sequester carbon at a much faster rate than terrestrial ecosystems like forests. This carbon is stored in the soils of these ecosystems -- marsh, sea grass, mangrove, and salt marshes. These habitats are of growing interest as greenhouse gases continue to accumulate in the atmosphere. Understanding the biogeochemical processes that make up carbon sequestration is important for advancing blue carbon management as a solution to climate change.  (@USGS_BlueCarbon_2024). 
 
-![Graphic of blue carbon ecosystems and carbon sequestration. Source:USGS](images/blue_carbon_graphic.png)
+![Graphic of blue carbon ecosystems and carbon sequestration. Source: USGS](images/blue_carbon_graphic.png)
 
 For this project, I will fit a **Beta Regression** model to answer the
 following question:
 
 -   **How does soil organic matter affect carbon in coastal ecosystems?**
 
-Soil organic matter is the organic matter within the soil that is deposited from organisms at various stages of decomposition. Soil organic matter is a key indicator of soil carbon in an ecosystem. Soil carbon is the fraction of carbon within the soil organic matter. 
+Soil organic matter consists of organic material deposited in the soil from organisms at various stages of decomposition. It is a key indicator of soil carbon in an ecosystem because soil carbon represents the portion of that organic matter made up of carbon. In other words, soil carbon is directly derived from, and proportional to, the amount of soil organic matter present.
 
 ## Data Background
 
-This data is from the Smithsonian Environmental Research Center Coastal Carbon Network (@SERC_CoastalCarbon). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They provide access to data sets for researchers and students like me. The dataset itself is originally over 15,000,000 observations. It includes data on soil measurements such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation. 
+This data is from the Smithsonian Environmental Research Center's Coastal Carbon Network (@SERC_CoastalCarbon). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They provide access to data sets for researchers and students like me. The dataset itself is originally over 15,000,000 observations and includes data on soil measurements such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation. 
 
-![Coastal Carbon Network](images/ccn_logo.png){fig-align="center" width="10%"}
+![Coastal Carbon Network logo](images/ccn_logo.png){fig-align="center" width="20%"}
 
 ## Data wrangling
 In this section I filtered the data for only variables of interest (`fraction_carbon`, `fraction_organic_matter`, `max_depth`, `habitat`) as well as ensured that `fraction_carbon` only contained fractional data between 0 and 1. For this dataset, I also filtered to the three most researched habitats for blue carbon: mangrove, seagrass, and marsh.
@@ -37,6 +37,7 @@ In this section I filtered the data for only variables of interest (`fraction_ca
 #| label: library set-up 
 #| output: false 
 #| echo: false
+#| code-fold: true
 
 set.seed(123)
 
@@ -49,12 +50,14 @@ library(kableExtra)
 #install.packages("glmmTMB")  
 library(glmmTMB)
 library(paletteer)
+library(patchwork)
 
 ```
 
 ```{r}
 #| label: data import 
 #| output: false 
+#| code-fold: true
 
 # Import 'CCN_sites', 'CCN_species', 'CCN_cores', 'CCN_depth_series'
 
@@ -69,23 +72,24 @@ depth_series <- read_csv(here("CCN_data/CCN_depthseries.csv"))
 #| label: data wrangling
 #| output: false
 #| warning: false 
+#| code-fold: true
 
 set.seed(123)
 
 # .....Further filter datasets.....
 
-# species data 
+# Species data 
 species <- species %>% 
   select('site_id', 'habitat') %>% 
   filter(habitat %in% c("mangrove", "seagrass", "marsh")) %>% 
   drop_na()
 
-# cores data 
+# Cores data 
 cores <- cores %>% 
   select('site_id', 'max_depth') %>% 
   drop_na()
 
-# depth series data 
+# Depth series data 
 depth_series <- depth_series %>% 
   select('site_id','fraction_organic_matter', 'fraction_carbon') %>% 
   drop_na()
@@ -105,9 +109,9 @@ blue_carbon <- sample_n(blue_carbon, size = 100000)
 # Ensure `fraction_carbon` ranges between 0 and 1 for analysis.
 range(blue_carbon$fraction_carbon)
 
-sum(blue_carbon$fraction_carbon < 0, na.rm = TRUE) # 467 negative values. 
+sum(blue_carbon$fraction_carbon < 0, na.rm = TRUE) # 17 negative values. 
 
-# Replace negative numbers wiht NAs
+# Replace negative numbers with NAs
 blue_carbon$fraction_carbon[blue_carbon$fraction_carbon < 0] <- NA
 
 # Check range to ensure negative values were 
@@ -120,11 +124,9 @@ blue_carbon <- na.omit(blue_carbon)
 blue_carbon$fraction_carbon[blue_carbon$fraction_carbon == 1] <- .999 
 blue_carbon$fraction_carbon[blue_carbon$fraction_carbon == 0] <- .0001
 
-# clear up environment
+# Clear up environment
 rm(list = c("cores", "depth_series", "sites", "species"))
 
-
-table(blue_carbon$habitat)
 ```
 
 ## Data Exploration
@@ -141,24 +143,25 @@ frac_car_plot <- blue_carbon %>%
        y = "Frequency", 
        title = "Distribution of Fraction Carbon") +
   theme_classic() +
-  theme(plot.title = element_text(hjust = 0.5)) # center title 
+  theme(plot.title = element_text(hjust = 0.5)) # Center title 
 
 frac_car_plot
 
 ```
-As you can in `fig 1.`, fraction carbon is left skewed signifying that it does not follow a normal distribution. This is due to fraction carbon being bounded between 0 and 1 because it is a fraction. 
+As you can see in Fig 1., fraction carbon is left skewed signifying that it does not follow a normal distribution. This is due to fraction carbon being bounded between 0 and 1 because it is a fraction. 
 
 ```{r, fig.cap= "Fig 2. Relationship between soil organic matter and fraction carbon"}
 #| label: Data viz 2
 #| message: false 
 #| code-fold: true
 
+# Define palette
 my_palette <- c("#9FD0D6", "#F2A176", "#985D73")
 
 som_car_habitat_plt <- blue_carbon %>% 
   ggplot(aes(x = fraction_organic_matter, y = fraction_carbon, color = habitat)) +
   geom_point(alpha = 0.2) +
-  geom_smooth(aes(group = habitat), method = "lm", se = FALSE) +
+  geom_smooth(aes(group = habitat), method = "lm", se = FALSE) + # Add best fit lines 
   scale_color_manual(values = my_palette) +
   theme_classic() +
   labs(x = "Soil Organic Matter (dimensionless)", 
@@ -167,8 +170,7 @@ som_car_habitat_plt <- blue_carbon %>%
 
 som_car_habitat_plt
 ```
-As you can in `fig 2`, soil organic matter has follows a linear pattern with fraction carbon. 
-There is some notable variation between habitat, especially between seagrass and marsh and mangrove habitats, however the shape of the data is similar for the majority of habitats. 
+As you can see in Fig 2., soil organic matter follows a generally linear pattern with fraction carbon. There is some notable variation between habitats, especially between seagrass compared to marsh and mangrove, but the overall shape of the data is similar across most habitats. Despite these differences, all three habitats show broadly comparable patterns in their relationship between soil organic matter and fraction carbon based on this graph. 
 
 ## Statistical model: Beta Regression
 Since my response variable, `fraction_carbon` is a fraction between 0
@@ -181,9 +183,9 @@ Why include `max_depth` in the model? Deeper soils might have more organic matte
 accumulation and fraction carbon can change with depth (e.g., shallower
 layers of soil may have higher carbon than deeper layers). 
 
-Why exclude `habitat` from the model? I am interested in the overall relationship between soil organic matter and fraction carbon, regardless of habitat. If I were to represent the causal relationship of habitat on fraction carbon I would represented it habitat → fraction_organic_matter → fraction_carbon. Because habitat influences organic matter, it inhibits the total effect of organic matter on fraction carbon. 
+Why exclude `habitat` from the model? I am interested in the overall relationship between soil organic matter and fraction carbon, regardless of habitat. If I were to represent the causal relationship of habitat and fraction carbon I would represent it as habitat → fraction_organic_matter → fraction_carbon. Because habitat influences organic matter, it inhibits the total effect of organic matter on fraction carbon, therefore excluding it allows me to model the full effect of the predictor on the response. 
 
-I represented these causal relationships with a DAG (directed acyclic graph): 
+I represented these causal relationships with a directed acylcic graph (DAG): 
 
 ![DAG](images/DAG.png)
 
@@ -198,7 +200,7 @@ Question: How does soil organic matter affect carbon?
     associated with higher fraction carbon.
 
 
-### Statistical Notation of model
+### Model statistical notation
 $$
 \begin{align}
 \text{carbon} &\sim \text{Beta}(\mu, \phi) \\
@@ -214,46 +216,48 @@ $$
 ## Fit model to simulated data
 
 In order to determine if a Beta regression model is fit for this data, I
-will *simulate* data and perform an analysis on the simulated data. This step is also helpful to see how well you understand the model. This includes the following steps:
+will *simulate* data and perform an analysis on the simulated data. This step is also helpful to see how well you understand the model you plan to use. This includes the following steps:
 
 1. define sample size
 2. choose parameters for $\beta$ 
-3. define range for predictors: This step is not necessary but helpful in simulating real *fake* data. In this step, I used the `runif()` function
+3. define range for predictors
 4. define linear equation and logit function
 5. generate response
 6. fit model to simulated data
+7. see if parameters were recovered 
 
 ```{r}
 #| label: Simulated data parameters
 #| output: false
 #| warning: false
 #| message: false 
+#| code-fold: true
 
 # set seed for reproducibility
 set.seed(123)
 
 # 1. Define sample size
-n <- 10000 # large enough
+n <- 10000 # Large enough sample size 
 
 # 2. Choose parameters 
-beta_0 <- 0.5 # intercept (fraction carbon)
-beta_1 <- 0.8  # effect of fraction organic matter
-beta_2 <- -0.01 # effect of max_depth
-phi <- 0.9 # precision parameter 
+beta_0 <- 0.5 # Intercept (fraction carbon)
+beta_1 <- 0.8  # Effect of fraction organic matter
+beta_2 <- -0.01 # Effect of max_depth
+phi <- 0.9 # Precision parameter 
 
-# 3. define predictor ranges (x's)
-# runif(n=sample size, min, max)
+# 3. Define predictor ranges (x's)
+# Runif(n=sample size, min, max)
 fraction_organic_matter <- runif(n, 0.05, 0.9)
 max_depth <- runif(n, 0, 30)
 
 # 3. Linear predictor and Logit response
-  # set logit_mu 
+  # Set logit_mu 
 logit_mu <- beta_0 + beta_1 * fraction_organic_matter + beta_2 * max_depth 
-  # set transformation 
+  # Set transformation 
   # Inverse logit 
-mu <- 1 / (1 + exp(-logit_mu)) # mu = mean of beta distribution
+mu <- 1 / (1 + exp(-logit_mu)) # Mu = mean of beta distribution
 
-# 4. Generate response with rbeta(). Look up documentation.
+# 4. Generate response with rbeta()
 shape1 <- mu * phi
 shape2 <- (1 - mu) * phi
 fraction_carbon <- rbeta(n, shape1, shape2)
@@ -293,9 +297,10 @@ coefficients <- c("Intercept", "Fraction Organic Matter", "Max Depth")
 estimate_sim <- c(beta_0_sim, beta_1_sim, beta_2_sim)
 actual <- c(beta_0, beta_1, beta_2)
 
-# combine into data frame 
+# Combine into data frame 
 sim_df_assess <- data.frame(coefficients, estimate_sim, actual) 
 
+# Make table pretty
 sim_df_assess%>% kable(col.names = c("Coefficient", "Simulation Estimate", "Actual Parameter"), caption = "Table 1. Model Assessment") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
@@ -324,13 +329,13 @@ betareg_mdl_sum <- summary(betareg_mdl)
 
 # .....Extract coefficients..... 
 
-# beta_0 (intercept)
+# Beta_0 
 beta_0 <- betareg_mdl_sum$coefficients$cond["(Intercept)", "Estimate"] 
 
-# beta_1 (slope of reference)
+# Beta_1 
 beta_1 <- betareg_mdl_sum$coefficients$cond["fraction_organic_matter", "Estimate"]
 
-# beta_2 (change in intercepts)
+# Beta_2 
 beta_2 <- betareg_mdl_sum$coefficients$cond["max_depth", "Estimate"]
 
 # Std. Errors 
@@ -360,84 +365,93 @@ p_values <- c(p_beta_0, p_beta_1, p_beta_2)
 # Ensure p-values show the zeros 
 p_text <- ifelse(p_values < 2e-16, "< 2e-16", format(p_values, scientific = TRUE))
 
-# turn into dataframe
+# Turn into dataframe
 betareg_mdl_tbl <- data.frame(coefficients, estimate, std_errors, p_values = p_text)
 
-# put in table 
+# Put in table 
 betareg_mdl_tbl %>%
   kable(col.names = c("Coefficient", "Estimate", "Standard Error", "P-Value"), caption = "Table 2. Beta Regression Output") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
 ```
 ## Model interpretation
-The beta regression analysis shows a low baseline of fraction carbon in coastal carbon ecosystems when there is no soil organic matter. Soil organic shows a strong, significant positive effect on fraction carbon. As for max depth, there is a very small effect on fraction carbon, however it is not significant enough in this model to definitely say deeper soils have more/less carbon. 
+The beta regression analysis shows a low baseline of fraction carbon in coastal carbon ecosystems when there is no soil organic matter. Soil organic shows a strong, significant positive effect on fraction carbon. As for max depth, there is a very small negative effect on fraction carbon, however it is not significant enough in this model to definitively say deeper soils have less carbon. All of these effects are transformed in logit space. 
 
 - Effect of fraction organic matter on fraction carbon → significant
 - Effect of max depth on fraction carbon → not significant 
 
-*Reject null hypothesis thats oil organic matter has no effect on fraction carbon in the soil* 
+**Reject null hypothesis that soil organic matter has no effect on fraction carbon in the soil.**
 
 ## Generate predictions
-In this section I will generate predictions to visualize what the relationship will be for new data. This includes the following steps:
+In this section I will generate predictions to visualize the predicted effect of soil organic matter on fraction carbon. This step is important to visualize the effect of the predictor on the response and interpret their relationship with predicted data. This includes the following steps:
 
 1. Create prediction grid/data frame where `fraction_organic_matter` is allowed to vary based on a specified sequence while `max_depth` is held constant (with its mean). 
 2. Use my Beta regression model fitted to real-life data (`betareg_mdl`) to generate predictions for `fraction_carbon`. This produces predicted beta-regression means. Ensure this dataframe is in the response space so that it returns values between 0 and 1. 
 
-Why am I holding `max_depth` constant? I want to show how `fraction_carbon` changes with one predictor (`fraction_organic_matter`). This isolates the effect of organic matter on carbon. 
+Why am I holding `max_depth` constant? I want to show how `fraction_carbon` changes with one predictor (`fraction_organic_matter`). This isolates the effect of organic matter on carbon. Additionally, from the results of my beta regression model, max depth did not have a significant effect on fraction carbon, therefore averaging the value will not impact the predictive power of the model. 
 
 ```{r}
 #| label: Generate predictions
 #| message: false
+#| code-fold: true
 
 # .....Create prediction grid.....
 pred_grid <- expand_grid(fraction_organic_matter = seq(from = 0, to = 1, by = 0.001)) %>% 
-  mutate(max_depth = mean(blue_carbon$max_depth, na.rm = TRUE)) # hold max depth constant 
+  mutate(max_depth = mean(blue_carbon$max_depth, na.rm = TRUE)) # Hold max depth constant 
 
 # ......Generate predictions.....
-betareg_grid <- pred_grid %>% 
-  mutate(predictions = predict(object = betareg_mdl, # glm
-                     newdata = pred_grid, # expand grid data
-                     type = "response")) # response link 
+betareg_grid <- pred_grid %>% # Pull from pred_grid
+  mutate(predictions = predict(object = betareg_mdl, # Predict based on beta reg model
+                     newdata = pred_grid, # Use expand grid data
+                     type = "response")) # Ensure predictions are in response space  
 
 ```
 
 ### Calculate Confidence Intervals
-In this section I will calculate the degree of certainty my predictions have using *confidence intervals*. A confidence interval is a range we are confident contains the population parameter.
+In this section I will calculate the degree of certainty my predictions have using *confidence intervals*. A confidence interval is a range we are confident contains the beta's. I will do this through **boot strapping**. Bootstrapping is useful here because the `glmmTMB` package does not calculate confidence intervals for your model. This includes the following steps: 
+
+1. Resample `blue_carbon` dataset 1000 times *with replacement* 
+2. Refit beta regression model on *each* bootstrap sample
+3. Make a predictions column from the `pred_grid` made previously
+4. Compute the 2.5th percentile (lower CI) and the 97.5th percentile (upper CI)
+
 ```{r}
 #| label: Calculate confidence intervals
 #| message: false
+#| code-fold: true
 
-# Bootstrap nrow(blue_carbon)
 
 boot <- map_dfr(1:1000, \(i) {
-  # boot strap sample
-  boot_sample <- slice_sample(blue_carbon, n = 1000, replace = TRUE) # replace the bootstrap 
-  # fit model 
+  # Boot strap sample
+  boot_sample <- slice_sample(blue_carbon, n = 1000, replace = TRUE) # Replace the bootstrap 
+  # Fit model 
   boot_mdl <- glmmTMB(fraction_carbon ~ fraction_organic_matter + max_depth, #
                       family = beta_family(link = "logit"), 
                       data = boot_sample)
-  # add predictions 
+  # Add predictions 
   pred_grid %>%
     mutate(predictions = predict(boot_mdl, newdata = pred_grid, type = "response"),
            boot = i)
 })
 
-# build confidence interval 
+# Build confidence interval 
 boot_ci <- boot %>% 
-  group_by(fraction_organic_matter, max_depth) %>% 
+  group_by(fraction_organic_matter, max_depth) %>% # Group by predictors 
   summarise(
-    ci_lwr = quantile(predictions, 0.025),
-    ci_upr = quantile(predictions, 0.975)
+    ci_lwr = quantile(predictions, 0.025), # Lower CI
+    ci_upr = quantile(predictions, 0.975) # Upper CI
   )
-
 
 ```
 
-```{r}
+## Visualize Predictions 
+```{r, fig.cap="Fig 3. and Fig 4. Predicted fraction carbon."}
+#| label: Fig 3 and 4
 #| code-fold: true
 #| message: false 
-# .....Plot predictions.....
+#| warning: false 
 
+# .....Plot predictions.....
 
 predict_plot <- ggplot() +
   # Predicted line
@@ -448,14 +462,12 @@ predict_plot <- ggplot() +
   geom_ribbon(data = boot_ci, 
               aes(x = fraction_organic_matter, ymin = ci_lwr, ymax = ci_upr), 
               fill = "#9FD0D6", alpha = 0.2) +
-  labs(
-    x = "Fraction Organic Matter (dimensionless)", 
+  labs(x = "Fraction Organic Matter (dimensionless)", 
     y = "Fraction Carbon (dimensionless)", 
     title = "Predicted Fraction Carbon") +
   theme_bw() +
-  theme(plot.title = element_text(hjust = 0.5)) # center title 
+  theme(plot.title = element_text(hjust = 0.4)) # Center title 
 
-predict_plot
 
 predict_plot_data <- ggplot() +
   # Predicted line
@@ -470,35 +482,24 @@ predict_plot_data <- ggplot() +
   geom_point(data = blue_carbon, 
              aes(x = fraction_organic_matter, y = fraction_carbon),
              alpha = 0.5, size = 2, color = "#345084FF") +
-  labs(
-    x = "Fraction Organic Matter (dimensionless)", 
+  labs(x = "Fraction Organic Matter (dimensionless)", 
     y = "Fraction Carbon (dimensionless)", 
-    title = "Predicted Fraction Carbon with raw data") +
+    title = "Predicted Fraction Carbon\nRaw Data") +
   theme_bw() +
-  theme(plot.title = element_text(hjust = 0.5)) # center title 
+  theme(plot.title = element_text(hjust = 0.4)) # Center title 
 
-predict_plot_data
 
-library(patchwork)
+# Plot side-by-side
 predict_plot + predict_plot_data
 
-
 ```
-The predicted plot predicts an increase in fraction carbon as organic matter increases. When plotted 
-
-After plotting this data I noticed the level of *noise* or outliers deviating from the linear direction in the data. This noise is due to 
+The predicted plot above (fig 3.) shows an increase in fraction carbon as organic matter increases. This is consistent with my findings from the beta regression model (p < 2e-16). When looking at the confidence interval, there is more certainty for organic matter proportions between 0.00 and 0.30 fractions. There is less certainty in the relationship as organic matter increases and fraction carbon increase, which is typical for confidence intervals as the level of certainty decreases as the amount of available data decreases. When plotting the raw data onto the predicted model in fig 4., you can see that the data trajectory differs from the predicted line. There can be many reasons for this behavior; my main idea is that the data itself has natural variation, as is common in all environmental datasets. When referencing fig 2., you can see that the "check-mark" shape of the data is due to variation in habitat (i.e., seagrass fraction carbon measurements varied). Since my model did not account for habitat, the predicted model may underfit the data. This natural "noise" in the data does not signify that the model failed, but rather shows that there is real-world variation within this dataset.
 
 
 ## Conclusion and next steps
-Soil organic matter is a known predictor for fraction carbon, as organic matter is the material that directly contributes to fraction carbon. As expected, the results of the beta regression model, showed significance for soil organic matter's effect on fraction carbon. Max depth did not 
-- was your hypothesis agreed with 
-- discuss the biogeochem that backs up the analysis 
-- discuss why max dpeth wasn't significant
-- discuss about sampling error for habitats + the messiness/noisnesss of the data set 
-- discuss future avenues for this study (looking into isolating the effect of habitat)
-- future expansion: use multinomial regression to predict habitat from fraction carbon, and other variables in the data set 
+Soil organic matter is a known predictor of fraction carbon, as organic matter is the material that directly contributes to fraction carbon. As hypothesized, the results of the beta regression model showed a significant effect of soil organic matter on fraction carbon (p < 2e-16). Max depth’s effect was not significant, which is important to note since it was included in this study based on the assumption that it might confound the relationship between fraction carbon and organic matter. From an ecological standpoint, depth may only have a strong effect at extremes (e.g., very shallow or very deep soils), and small variations may not noticeably influence fraction carbon.
 
-## References
+In conclusion, understanding the biogeochemical processes of these unique ecosystems is crucial. In future studies, it would be interesting to isolate the effect of habitat on fraction carbon, or to include the interactive effects of habitat and soil organic matter. This could provide a more detailed understanding of the factors controlling carbon distribution in these systems.
 
 ## Github
 [To view this analysis, visit Github repository](https://github.com/IsabellaSegarra/coastal-carbon)

@@ -42,3 +42,7 @@ The data for this study can be accessed through the Smithsonian Environmental Re
 Coastal Carbon Network (2023). Database: Coastal Carbon Library (Version 1.6.0). Smithsonian Environmental Research Center. Dataset. https://doi.org/10.25573/serc.21565671. Accessed (2025-10-30).
 
 Brooks, M., Kristensen K., Maechler M., Magnusson A., McGillycuddy M., Skaug H., Nielsen A., Berg C., van Bentham K., Sadat N., Lüdecke D., Lenth R., O'Brien J., Geyer C.J., Jagan M., Wiernik B., Stouffer D.B., Agronah M., Akdur H.T.K., Bové D.S., and Krieger N. Package ‘glmmTMB’ (CRAN). (Oct. 9, 2025). https://cran.r-project.org/web/packages/glmmTMB/glmmTMB.pdf
+
+Cribari-Neto, F., & Zeileis, A. (2010). Beta regression. Journal of Statistical Software, 34(2). https://doi.org/10.18637/jss.v034.i02 
+
+U.S. Geological Survey. (2024). Blue carbon. https://www.usgs.gov/science/science-explorer/climate/blue-carbon 
