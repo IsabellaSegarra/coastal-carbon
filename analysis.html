@@ -6,7 +6,6 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-12-04">
 <meta name="description" content="A brief statistical analysis of soil carbon.">
 
 <title>Investigating Blue Carbon Ecosystems with Beta Regression</title>
@@ -136,12 +135,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Investigating Blue Carbon Ecosystems with Beta Regression</h1>
-  <div class="quarto-categories">
-    <div class="quarto-category">MEDS</div>
-    <div class="quarto-category">R</div>
-    <div class="quarto-category">data-viz</div>
-  </div>
-  </div>
+</div>
 
 <div>
   <div class="description">
@@ -153,12 +147,6 @@ window.Quarto = {
 <div class="quarto-title-meta">
 
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">December 4, 2025</p>
-    </div>
-  </div>
   
     
   </div>
@@ -168,6 +156,8 @@ window.Quarto = {
 </header>
 
 
+<section id="investigating-blue-carbon-ecosystems-with-beta-regression" class="level1">
+<h1>Investigating Blue Carbon Ecosystems with Beta Regression</h1>
 <section id="research-question" class="level2">
 <h2 class="anchored" data-anchor-id="research-question">Research Question</h2>
 <p>Large amounts of carbon is naturally stored in the world’s oceans and in the soil of coastal wetlands. This is referred to as <em>blue carbon</em>.</p>
@@ -189,13 +179,13 @@ window.Quarto = {
 <p>This data is from the Smithsonian Environmental Research Center’s Coastal Carbon Network (<span class="citation" data-cites="SERC_CoastalCarbon">Center (<a href="#ref-SERC_CoastalCarbon" role="doc-biblioref">n.d.</a>)</span>). The CCN collects and standardizes carbon stock and flux data from coastal ecosystems worldwide. They provide access to data sets for researchers and students like me. The dataset itself is originally over 15,000,000 observations and includes data on soil measurements such as depth of soil cores, soil bulk density, organic matter, carbon, and data on habitat and associated vegetation.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="images/ccn_logo.png" class="img-fluid figure-img" style="width:10.0%"></p>
+<p><img src="images/ccn_logo.png" class="img-fluid figure-img" style="width:20.0%"></p>
 <figcaption>Coastal Carbon Network logo</figcaption>
 </figure>
 </div>
 </section>
 <section id="data-wrangling" class="level2">
-<h2 class="anchored" data-anchor-id="data-wrangling">Data wrangling</h2>
+<h2 class="anchored" data-anchor-id="data-wrangling">Data Wrangling</h2>
 <p>In this section I filtered the data for only variables of interest (<code>fraction_carbon</code>, <code>fraction_organic_matter</code>, <code>max_depth</code>, <code>habitat</code>) as well as ensured that <code>fraction_carbon</code> only contained fractional data between 0 and 1. For this dataset, I also filtered to the three most researched habitats for blue carbon: mangrove, seagrass, and marsh.</p>
 <div class="cell">
 <details class="code-fold">
@@ -323,7 +313,7 @@ window.Quarto = {
 <p>As you can see in Fig 2., soil organic matter follows a generally linear pattern with fraction carbon. There is some notable variation between habitats, especially between seagrass compared to marsh and mangrove, but the overall shape of the data is similar across most habitats. Despite these differences, all three habitats show broadly comparable patterns in their relationship between soil organic matter and fraction carbon based on this graph.</p>
 </section>
 <section id="statistical-model-beta-regression" class="level2">
-<h2 class="anchored" data-anchor-id="statistical-model-beta-regression">Statistical model: Beta Regression</h2>
+<h2 class="anchored" data-anchor-id="statistical-model-beta-regression">Statistical Model: Beta Regression</h2>
 <p>Since my response variable, <code>fraction_carbon</code> is a fraction between 0 and 1, and is not normally distributed around the mean, I will use <em>Beta regression</em> (<span class="citation" data-cites="CribariNetoZeileis2010">Cribari–Neto and Zeileis (<a href="#ref-CribariNetoZeileis2010" role="doc-biblioref">2010</a>)</span>). Beta regression models the mean of a proportion or fraction as a function of predictors. My predictors in this study are the following:</p>
 <ul>
 <li><code>fraction_organic_matter</code>: Mass of organic matter relative to sample dry mass (dimensionless)</li>
@@ -347,7 +337,7 @@ window.Quarto = {
 </ul>
 </section>
 <section id="model-statistical-notation" class="level3">
-<h3 class="anchored" data-anchor-id="model-statistical-notation">Model statistical notation</h3>
+<h3 class="anchored" data-anchor-id="model-statistical-notation">Model Statistical Notation</h3>
 <p><span class="math display">\[
 \begin{align}
 \text{carbon} &amp;\sim \text{Beta}(\mu, \phi) \\
@@ -363,7 +353,7 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 </section>
 </section>
 <section id="fit-model-to-simulated-data" class="level2">
-<h2 class="anchored" data-anchor-id="fit-model-to-simulated-data">Fit model to simulated data</h2>
+<h2 class="anchored" data-anchor-id="fit-model-to-simulated-data">Fit Model to Simulated Data</h2>
 <p>In order to determine if a Beta regression model is fit for this data, I will <em>simulate</em> data and perform an analysis on the simulated data. This step is also helpful to see how well you understand the model you plan to use. This includes the following steps:</p>
 <ol type="1">
 <li>define sample size</li>
@@ -454,14 +444,17 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 </div>
 <p>The model seems to recover parameters well. This is good evidence that beta regression is the model for this data.</p>
 </section>
-<section id="fit-model-to-real-life-data" class="level2">
-<h2 class="anchored" data-anchor-id="fit-model-to-real-life-data">Fit model to real-life data</h2>
+<section id="fit-model-to-real-data" class="level2">
+<h2 class="anchored" data-anchor-id="fit-model-to-real-data">Fit Model to Real Data</h2>
 <p>Now, I will fit a beta regression model to real life data from the Smithsonian’s Coastal Carbon Network. I will use the <code>glmmTMB</code> package and specify the family as <code>beta_family</code> for a beta regression.</p>
 <div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># .....Fit beta regression model..... </span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>betareg_mdl <span class="ot">&lt;-</span> <span class="fu">glmmTMB</span>(fraction_carbon <span class="sc">~</span> fraction_organic_matter <span class="sc">+</span> max_depth, </span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                      <span class="at">data =</span> blue_carbon, <span class="at">family =</span> <span class="fu">beta_family</span>()) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
 <div class="cell">
 <details class="code-fold">
@@ -528,16 +521,16 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 </div>
 </section>
 <section id="model-interpretation" class="level2">
-<h2 class="anchored" data-anchor-id="model-interpretation">Model interpretation</h2>
+<h2 class="anchored" data-anchor-id="model-interpretation">Model Interpretation</h2>
 <p>The beta regression analysis shows a low baseline of fraction carbon in coastal carbon ecosystems when there is no soil organic matter. Soil organic shows a strong, significant positive effect on fraction carbon. As for max depth, there is a very small negative effect on fraction carbon, however it is not significant enough in this model to definitively say deeper soils have less carbon. All of these effects are transformed in logit space.</p>
 <ul>
 <li>Effect of fraction organic matter on fraction carbon → significant</li>
 <li>Effect of max depth on fraction carbon → not significant</li>
 </ul>
-<p><strong>Reject null hypothesis that soil organic matter has no effect on fraction carbon in the soil</strong></p>
+<p><strong>Reject null hypothesis that soil organic matter has no effect on fraction carbon in the soil.</strong></p>
 </section>
 <section id="generate-predictions" class="level2">
-<h2 class="anchored" data-anchor-id="generate-predictions">Generate predictions</h2>
+<h2 class="anchored" data-anchor-id="generate-predictions">Generate Predictions</h2>
 <p>In this section I will generate predictions to visualize the predicted effect of soil organic matter on fraction carbon. This step is important to visualize the effect of the predictor on the response and interpret their relationship with predicted data. This includes the following steps:</p>
 <ol type="1">
 <li>Create prediction grid/data frame where <code>fraction_organic_matter</code> is allowed to vary based on a specified sequence while <code>max_depth</code> is held constant (with its mean).</li>
@@ -560,7 +553,7 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 </div>
 <section id="calculate-confidence-intervals" class="level3">
 <h3 class="anchored" data-anchor-id="calculate-confidence-intervals">Calculate Confidence Intervals</h3>
-<p>In this section I will calculate the degree of certainty my predictions have using <em>confidence intervals</em>. A confidence interval is a range we are confident contains the beta’s to fall. I will do this through <strong>boot strapping</strong>. Bootstrapping is useful here because the <code>glmmTMB</code> package does not calculate confidence intervals for your model. This includes the following steps:</p>
+<p>In this section I will calculate the degree of certainty my predictions have using <em>confidence intervals</em>. A confidence interval is a range we are confident contains the beta’s. I will do this through <strong>boot strapping</strong>. Bootstrapping is useful here because the <code>glmmTMB</code> package does not calculate confidence intervals for your model. This includes the following steps:</p>
 <ol type="1">
 <li>Resample <code>blue_carbon</code> dataset 1000 times <em>with replacement</em></li>
 <li>Refit beta regression model on <em>each</em> bootstrap sample</li>
@@ -614,36 +607,31 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 <span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Fraction Carbon (dimensionless)"</span>, </span>
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Predicted Fraction Carbon"</span>) <span class="sc">+</span></span>
 <span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.4</span>)) <span class="co"># Center title </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-ℹ Please use `linewidth` instead.</code></pre>
-</div>
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>predict_plot_data <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Predicted line</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> betareg_grid, </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">y =</span> predictions), </span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">color =</span> <span class="st">"#345084FF"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Confidence Interval </span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">data =</span> boot_ci, </span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">ymin =</span> ci_lwr, <span class="at">ymax =</span> ci_upr), </span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">fill =</span> <span class="st">"#9FD0D6"</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Original data points</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> blue_carbon, </span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">y =</span> fraction_carbon),</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"#345084FF"</span>) <span class="sc">+</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Fraction Organic Matter (dimensionless)"</span>, </span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Fraction Carbon (dimensionless)"</span>, </span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Predicted Fraction Carbon</span><span class="sc">\n</span><span class="st">Raw Data"</span>) <span class="sc">+</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.4</span>)) <span class="co"># Center title </span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot side-by-side</span></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>predict_plot <span class="sc">+</span> predict_plot_data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.4</span>)) <span class="co"># Center title </span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>predict_plot_data <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Predicted line</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> betareg_grid, </span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>            <span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">y =</span> predictions), </span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">color =</span> <span class="st">"#345084FF"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Confidence Interval </span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">data =</span> boot_ci, </span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">ymin =</span> ci_lwr, <span class="at">ymax =</span> ci_upr), </span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>              <span class="at">fill =</span> <span class="st">"#9FD0D6"</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Original data points</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> blue_carbon, </span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x =</span> fraction_organic_matter, <span class="at">y =</span> fraction_carbon),</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>             <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"#345084FF"</span>) <span class="sc">+</span></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Fraction Organic Matter (dimensionless)"</span>, </span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Fraction Carbon (dimensionless)"</span>, </span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Predicted Fraction Carbon</span><span class="sc">\n</span><span class="st">Raw Data"</span>) <span class="sc">+</span></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.4</span>)) <span class="co"># Center title </span></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot side-by-side</span></span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>predict_plot <span class="sc">+</span> predict_plot_data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -657,14 +645,11 @@ logit(\mu) &amp;= \beta_0 + \beta_1 \, \text{organicmatter}_i + \beta_2 \, \text
 <p>The predicted plot above (fig 3.) shows an increase in fraction carbon as organic matter increases. This is consistent with my findings from the beta regression model (p &lt; 2e-16). When looking at the confidence interval, there is more certainty for organic matter proportions between 0.00 and 0.30 fractions. There is less certainty in the relationship as organic matter increases and fraction carbon increase, which is typical for confidence intervals as the level of certainty decreases as the amount of available data decreases. When plotting the raw data onto the predicted model in fig 4., you can see that the data trajectory differs from the predicted line. There can be many reasons for this behavior; my main idea is that the data itself has natural variation, as is common in all environmental datasets. When referencing fig 2., you can see that the “check-mark” shape of the data is due to variation in habitat (i.e., seagrass fraction carbon measurements varied). Since my model did not account for habitat, the predicted model may underfit the data. This natural “noise” in the data does not signify that the model failed, but rather shows that there is real-world variation within this dataset.</p>
 </section>
 <section id="conclusion-and-next-steps" class="level2">
-<h2 class="anchored" data-anchor-id="conclusion-and-next-steps">Conclusion and next steps</h2>
+<h2 class="anchored" data-anchor-id="conclusion-and-next-steps">Conclusion and Next Steps</h2>
 <p>Soil organic matter is a known predictor of fraction carbon, as organic matter is the material that directly contributes to fraction carbon. As hypothesized, the results of the beta regression model showed a significant effect of soil organic matter on fraction carbon (p &lt; 2e-16). Max depth’s effect was not significant, which is important to note since it was included in this study based on the assumption that it might confound the relationship between fraction carbon and organic matter. From an ecological standpoint, depth may only have a strong effect at extremes (e.g., very shallow or very deep soils), and small variations may not noticeably influence fraction carbon.</p>
 <p>In conclusion, understanding the biogeochemical processes of these unique ecosystems is crucial. In future studies, it would be interesting to isolate the effect of habitat on fraction carbon, or to include the interactive effects of habitat and soil organic matter. This could provide a more detailed understanding of the factors controlling carbon distribution in these systems.</p>
-</section>
-<section id="github" class="level2">
-<h2 class="anchored" data-anchor-id="github">Github</h2>
-<p><a href="https://github.com/IsabellaSegarra/coastal-carbon">To view this analysis, visit Github repository</a></p>
 
+</section>
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
@@ -677,18 +662,7 @@ Cribari–Neto, Francisco, and Achim Zeileis. 2010. <span>“Beta Regression.”
 <div id="ref-USGS_BlueCarbon_2024" class="csl-entry" role="listitem">
 Survey, U. S. Geological. 2024. <span>“Blue Carbon.”</span> <a href="https://www.usgs.gov/science/science-explorer/climate/blue-carbon" class="uri">https://www.usgs.gov/science/science-explorer/climate/blue-carbon</a>.
 </div>
-</div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{2025,
-  author = {},
-  title = {Investigating {Blue} {Carbon} {Ecosystems} with {Beta}
-    {Regression}},
-  date = {2025-12-04},
-  url = {https://isabellasegarra.github.io/posts/my-first-blog-post},
-  langid = {en}
-}
-</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-2025" class="csl-entry quarto-appendix-citeas" role="listitem">
-<span>“Investigating Blue Carbon Ecosystems with Beta
-Regression.”</span> 2025. December 4, 2025. <a href="https://isabellasegarra.github.io/posts/my-first-blog-post">https://isabellasegarra.github.io/posts/my-first-blog-post</a>.
-</div></div></section></div></main>
+</div></section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

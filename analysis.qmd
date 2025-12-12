@@ -1,16 +1,17 @@
 ---
 title: "Investigating Blue Carbon Ecosystems with Beta Regression"
 description: "A brief statistical analysis of soil carbon."
-date: 2025-12-4
-categories: [MEDS, R, data-viz] #add hyphen for multiple words
-image: image.png
-citation: # true if no link 
-  url: https://isabellasegarra.github.io/posts/my-first-blog-post
-draft: false
+format:
+  html:
+    code-fold: show
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: false
 draft-mode: linked
 bibliography: references.bib
 ---
-
 ## Research Question
 Large amounts of carbon is naturally stored in the world's oceans and in the soil of coastal wetlands. This is referred to as *blue carbon*. 
  
@@ -500,6 +501,3 @@ The predicted plot above (fig 3.) shows an increase in fraction carbon as organi
 Soil organic matter is a known predictor of fraction carbon, as organic matter is the material that directly contributes to fraction carbon. As hypothesized, the results of the beta regression model showed a significant effect of soil organic matter on fraction carbon (p < 2e-16). Max depth’s effect was not significant, which is important to note since it was included in this study based on the assumption that it might confound the relationship between fraction carbon and organic matter. From an ecological standpoint, depth may only have a strong effect at extremes (e.g., very shallow or very deep soils), and small variations may not noticeably influence fraction carbon.
 
 In conclusion, understanding the biogeochemical processes of these unique ecosystems is crucial. In future studies, it would be interesting to isolate the effect of habitat on fraction carbon, or to include the interactive effects of habitat and soil organic matter. This could provide a more detailed understanding of the factors controlling carbon distribution in these systems.
-
-## Github
-[To view this analysis, visit my Github repository](https://github.com/IsabellaSegarra/coastal-carbon)
